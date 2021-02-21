@@ -1,0 +1,3 @@
+{
+    "docker.host": "ssh://pi@fijocup.int.gimon.es"
+}

@@ -1,0 +1,28 @@
+{
+	"name": "robocup-cxx",
+	"dockerFile": "Dockerfile",
+	"workspaceMount": "source=/home/pi/Desarrollo/robocup-cxx,target=/robocup-cxx,type=bind,consistency=cached",
+	"workspaceFolder": "/robocup-cxx",
+	"runArgs": ["--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined"],
+
+	// Specifies a list of ports that should be published from the container.
+	"appPort": [],
+
+	// Comment out the next line to run as root instead. Linux users, 
+	// update Dockerfile with your user's UID/GID if not 1000.
+	//"runArgs": ["-u", "juanma"],
+
+	// Use 'settings' to set *default* container specific settings.json values on container create. 
+	// You can edit these settings after create using File > Preferences > Settings > Remote.
+	"settings": { 
+		"terminal.integrated.shell.linux": "/bin/bash"
+	},
+
+	// Specifies a command to run after the container is created
+	"postCreateCommand": "git config --global user.name \"juanmagi\" && git config --global user.email \"juan_manuel@gimon.com\"",
+	//"postCreateCommand": "sudo postCreatedCommand",
+
+	"extensions": [
+		"ms-vscode.cpptools"
+	]
+}
