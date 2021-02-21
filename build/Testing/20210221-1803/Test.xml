@@ -6,9 +6,9 @@
 	CompilerName="/usr/bin/c++"
 	CompilerVersion="8.3.0"
 	OSName="Linux"
-	Hostname="b6161abc4177"
-	OSRelease="5.10.11-v7+"
-	OSVersion="#1399 SMP Thu Jan 28 12:06:05 GMT 2021"
+	Hostname="17449096069f"
+	OSRelease="5.10.11-v7l+"
+	OSVersion="#1399 SMP Thu Jan 28 12:09:48 GMT 2021"
 	OSPlatform="armv7l"
 	Is64Bits="0"
 	VendorString=""
@@ -19,16 +19,16 @@
 	NumberOfLogicalCPU="4"
 	NumberOfPhysicalCPU="1"
 	TotalVirtualMemory="99"
-	TotalPhysicalMemory="924"
+	TotalPhysicalMemory="3827"
 	LogicalProcessorsPerPhysical="4"
 	ProcessorClockFrequency="0"
 	>
 	<Testing>
-		<StartDateTime>Feb 21 19:03 CET</StartDateTime>
-		<StartTestTime>1613930605</StartTestTime>
+		<StartDateTime>Feb 21 20:19 CET</StartDateTime>
+		<StartTestTime>1613935168</StartTestTime>
 		<TestList/>
-		<EndDateTime>Feb 21 19:03 CET</EndDateTime>
-		<EndTestTime>1613930605</EndTestTime>
+		<EndDateTime>Feb 21 20:19 CET</EndDateTime>
+		<EndTestTime>1613935168</EndTestTime>
 		<ElapsedMinutes>0</ElapsedMinutes>
 	</Testing>
 </Site>
