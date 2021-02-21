@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/robocup-cxx/build",
+  "command": "/usr/bin/c++    -g   -o CMakeFiles/robocupcxx.dir/main.cpp.o -c /robocup-cxx/main.cpp",
+  "file": "/robocup-cxx/main.cpp"
+}
+]

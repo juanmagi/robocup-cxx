@@ -1,0 +1,1 @@
+/usr/bin/c++  -g  -rdynamic CMakeFiles/robocupcxx.dir/main.cpp.o  -o robocupcxx 
