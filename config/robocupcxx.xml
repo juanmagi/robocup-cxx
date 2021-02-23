@@ -1,0 +1,55 @@
+<comun>
+    <general>
+        <simulacion>1</simulacion>
+    </general>
+    <gpio>
+        <pin_led_reset>2</pin_led_reset>
+        <pin_led_ccw>3</pin_led_ccw>
+        <pin_led_cw>9</pin_led_cw>
+        <pin_led_dah>10</pin_led_dah>
+        <pin_led_encoder>15</pin_led_encoder>
+        <pin_key_reset>7</pin_key_reset>
+        <pin_key_cw>8</pin_key_cw>
+        <pin_key_ccw>11</pin_key_ccw>
+        <pin_act_cw>20</pin_act_cw>
+        <pin_act_ccw>21</pin_act_ccw>
+        <pin_act_on_movil>26</pin_act_on_movil>
+        <pin_inp_dah>13</pin_inp_dah>
+        <pin_inp_encoder>12</pin_inp_encoder>
+    </gpio>
+    <pigpio>
+        <server>172.17.0.1</server>
+        <port>8888</port>
+    </pigpio>
+    <log>
+        <fichero>/var/log/gimon/robocupcxx.log</fichero>
+         <!--Los niveles son: OFF,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,ALL-->
+        <nivel>DEBUG</nivel>
+    </log>
+</comun>
+<desarrollo>
+    <general>
+        <simulacion>1</simulacion>
+    </general>
+    <gpio>
+    </gpio>
+    <pigpio>
+    </pigpio>
+    <log>
+         <!--Los niveles son: OFF,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,ALL-->
+        <nivel>DEBUG</nivel>
+    </log>
+</desarrollo>
+<produccion>
+    <general>
+        <simulacion>0</simulacion>
+    </general>
+    <gpio>
+    </gpio>
+    <pigpio>
+    </pigpio>
+    <log>
+         <!--Los niveles son: OFF,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,ALL-->
+        <nivel>INFO</nivel>
+    </log>
+</produccion>
