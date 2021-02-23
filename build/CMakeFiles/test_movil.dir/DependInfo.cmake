@@ -4,8 +4,8 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/robocup-cxx/CConfig.cpp" "/robocup-cxx/build/CMakeFiles/robocupcxx.dir/CConfig.cpp.o"
-  "/robocup-cxx/main.cpp" "/robocup-cxx/build/CMakeFiles/robocupcxx.dir/main.cpp.o"
+  "/robocup-cxx/CConfig.cpp" "/robocup-cxx/build/CMakeFiles/test_movil.dir/CConfig.cpp.o"
+  "/robocup-cxx/test_movil.cpp" "/robocup-cxx/build/CMakeFiles/test_movil.dir/test_movil.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

@@ -144,6 +144,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named test_movil
+
+# Build rule for target.
+test_movil: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 test_movil
+.PHONY : test_movil
+
+# fast build rule for target.
+test_movil/fast:
+	$(MAKE) -f CMakeFiles/test_movil.dir/build.make CMakeFiles/test_movil.dir/build
+.PHONY : test_movil/fast
+
+#=============================================================================
 # Target rules for targets named robocupcxx
 
 # Build rule for target.
@@ -520,6 +533,36 @@ ExperimentalConfigure/fast:
 	$(MAKE) -f CMakeFiles/ExperimentalConfigure.dir/build.make CMakeFiles/ExperimentalConfigure.dir/build
 .PHONY : ExperimentalConfigure/fast
 
+CConfig.o: CConfig.cpp.o
+
+.PHONY : CConfig.o
+
+# target to build an object file
+CConfig.cpp.o:
+	$(MAKE) -f CMakeFiles/test_movil.dir/build.make CMakeFiles/test_movil.dir/CConfig.cpp.o
+	$(MAKE) -f CMakeFiles/robocupcxx.dir/build.make CMakeFiles/robocupcxx.dir/CConfig.cpp.o
+.PHONY : CConfig.cpp.o
+
+CConfig.i: CConfig.cpp.i
+
+.PHONY : CConfig.i
+
+# target to preprocess a source file
+CConfig.cpp.i:
+	$(MAKE) -f CMakeFiles/test_movil.dir/build.make CMakeFiles/test_movil.dir/CConfig.cpp.i
+	$(MAKE) -f CMakeFiles/robocupcxx.dir/build.make CMakeFiles/robocupcxx.dir/CConfig.cpp.i
+.PHONY : CConfig.cpp.i
+
+CConfig.s: CConfig.cpp.s
+
+.PHONY : CConfig.s
+
+# target to generate assembly for a file
+CConfig.cpp.s:
+	$(MAKE) -f CMakeFiles/test_movil.dir/build.make CMakeFiles/test_movil.dir/CConfig.cpp.s
+	$(MAKE) -f CMakeFiles/robocupcxx.dir/build.make CMakeFiles/robocupcxx.dir/CConfig.cpp.s
+.PHONY : CConfig.cpp.s
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -547,6 +590,33 @@ main.cpp.s:
 	$(MAKE) -f CMakeFiles/robocupcxx.dir/build.make CMakeFiles/robocupcxx.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+test_movil.o: test_movil.cpp.o
+
+.PHONY : test_movil.o
+
+# target to build an object file
+test_movil.cpp.o:
+	$(MAKE) -f CMakeFiles/test_movil.dir/build.make CMakeFiles/test_movil.dir/test_movil.cpp.o
+.PHONY : test_movil.cpp.o
+
+test_movil.i: test_movil.cpp.i
+
+.PHONY : test_movil.i
+
+# target to preprocess a source file
+test_movil.cpp.i:
+	$(MAKE) -f CMakeFiles/test_movil.dir/build.make CMakeFiles/test_movil.dir/test_movil.cpp.i
+.PHONY : test_movil.cpp.i
+
+test_movil.s: test_movil.cpp.s
+
+.PHONY : test_movil.s
+
+# target to generate assembly for a file
+test_movil.cpp.s:
+	$(MAKE) -f CMakeFiles/test_movil.dir/build.make CMakeFiles/test_movil.dir/test_movil.cpp.s
+.PHONY : test_movil.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -555,6 +625,7 @@ help:
 	@echo "... depend"
 	@echo "... test"
 	@echo "... package"
+	@echo "... test_movil"
 	@echo "... robocupcxx"
 	@echo "... ContinuousSubmit"
 	@echo "... ContinuousBuild"
@@ -587,9 +658,15 @@ help:
 	@echo "... edit_cache"
 	@echo "... ExperimentalUpdate"
 	@echo "... ExperimentalConfigure"
+	@echo "... CConfig.o"
+	@echo "... CConfig.i"
+	@echo "... CConfig.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... test_movil.o"
+	@echo "... test_movil.i"
+	@echo "... test_movil.s"
 .PHONY : help
 
 

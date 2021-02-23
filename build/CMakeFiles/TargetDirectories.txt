@@ -1,5 +1,6 @@
 /robocup-cxx/build/CMakeFiles/test.dir
 /robocup-cxx/build/CMakeFiles/package.dir
+/robocup-cxx/build/CMakeFiles/test_movil.dir
 /robocup-cxx/build/CMakeFiles/robocupcxx.dir
 /robocup-cxx/build/CMakeFiles/ContinuousSubmit.dir
 /robocup-cxx/build/CMakeFiles/ContinuousBuild.dir

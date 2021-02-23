@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/robocupcxx.dir/main.cpp.o"
+  "CMakeFiles/robocupcxx.dir/CConfig.cpp.o"
   "robocupcxx.pdb"
   "robocupcxx"
 )

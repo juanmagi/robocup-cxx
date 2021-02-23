@@ -1,6 +1,7 @@
 boost-1.75.0
 pigpio-master
 log4cxx.0.11.0
+pigpio-78
 
 # Prerequisites
 *.d
@@ -16,7 +17,7 @@ log4cxx.0.11.0
 *.pch
 
 # Compiled Dynamic libraries
-*.so
+#*.so
 *.dylib
 *.dll
 
