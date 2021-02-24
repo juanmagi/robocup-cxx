@@ -52,6 +52,7 @@ ENV LC_ALL es_ES.UTF-8
 ENV LANG es_ES.UTF-8
 ENV LANGUAGE es_ES.UTF-8
 
+RUN dpkg-reconfigure locales
 RUN ln -sf /usr/share/zoneinfo/Europe/Madrid /etc/localtime
 
 # Switch back to dialog for any ad-hoc use of apt-get
