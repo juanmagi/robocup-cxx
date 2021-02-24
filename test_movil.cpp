@@ -38,9 +38,15 @@ int main(int /*argc*/, char **/*argv*/){
 	logger->addAppender(defaultAppender);
 	logger->setLevel(param.log_nivel);
 
-    m_pi_id=pigpio_start(param.pigpio_server.c_str(),param.pigpio_port.c_str()
-    if (m_pi_id==0)
+    m_pi_id=pigpio_start((char*)param.pigpio_server.c_str(),(char*)param.pigpio_port.c_str());
+    if (m_pi_id<0){
+        std::cout << "TODO MAL!\n";
         return EXIT_FAILURE;
+    }
+
+    cout << "HW Versión: " << get_hardware_revision(m_pi_id) << endl;
+    cout << "pigpiod Versión: " << get_pigpio_version(m_pi_id) << endl;
+    cout << "pigpiod_if2 Versión: " << pigpiod_if_version() << endl;
 
     pigpio_stop(m_pi_id);
 

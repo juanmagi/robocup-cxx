@@ -14,6 +14,7 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "../includeDebug"
   "../boost/include"
   "../log4cxx/include"
+  "../pigpio/include"
   )
 
 # Targets to which this target links.

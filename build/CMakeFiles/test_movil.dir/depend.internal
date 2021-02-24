@@ -783,6 +783,7 @@ CMakeFiles/test_movil.dir/CConfig.cpp.o
  ../boost/include/boost/utility/swap.hpp
  ../boost/include/boost/version.hpp
  ../boost/include/boost/visit_each.hpp
+ ../includeDebug/modo.h
  ../log4cxx/include/log4cxx/appender.h
  ../log4cxx/include/log4cxx/helpers/appenderattachableimpl.h
  ../log4cxx/include/log4cxx/helpers/charsetencoder.h
@@ -1593,6 +1594,7 @@ CMakeFiles/test_movil.dir/test_movil.cpp.o
  ../boost/include/boost/utility/swap.hpp
  ../boost/include/boost/version.hpp
  ../boost/include/boost/visit_each.hpp
+ ../includeDebug/modo.h
  ../log4cxx/include/log4cxx/appender.h
  ../log4cxx/include/log4cxx/appenderskeleton.h
  ../log4cxx/include/log4cxx/config/propertysetter.h
@@ -1646,5 +1648,7 @@ CMakeFiles/test_movil.dir/test_movil.cpp.o
  ../log4cxx/include/log4cxx/spi/optionhandler.h
  ../log4cxx/include/log4cxx/writerappender.h
  ../log4cxx/include/log4cxx/xml/domconfigurator.h
+ ../pigpio/include/pigpio.h
+ ../pigpio/include/pigpiod_if2.h
  /robocup-cxx/CConfig.h
  /robocup-cxx/test_movil.cpp

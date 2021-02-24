@@ -19,16 +19,19 @@ enable_testing()
 
 set(BOOST_LIBRARY ${CMAKE_SOURCE_DIR}/boost/lib)
 set(LOG4CXX_LIBRARY ${CMAKE_SOURCE_DIR}/log4cxx/lib/liblog4cxx.so)
+set(PIGPIO_LIBRARY ${CMAKE_SOURCE_DIR}/pigpio/lib/libpigpiod_if2.so)
 
 add_executable(robocupcxx main.cpp CConfig.cpp)
 add_executable(test_movil test_movil.cpp CConfig.cpp)
 
 include_directories(boost/include
         log4cxx/include
+        pigpio/include
         )
 
 target_link_libraries(robocupcxx
     ${LOG4CXX_LIBRARY}
+    ${PIGPIO_LIBRARY}
     ${BOOST_LIBRARY}/libboost_date_time.a    
     ${BOOST_LIBRARY}/libboost_regex.a    
     ${BOOST_LIBRARY}/libboost_serialization.a    
@@ -38,7 +41,8 @@ target_link_libraries(robocupcxx
 
 target_link_libraries(test_movil 
     ${LOG4CXX_LIBRARY}
-)
+    ${PIGPIO_LIBRARY}
+    )
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

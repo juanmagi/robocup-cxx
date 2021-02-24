@@ -6,5 +6,5 @@ CXX_FLAGS =  -pthread -g
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/robocup-cxx/includeDebug -I/robocup-cxx/boost/include -I/robocup-cxx/log4cxx/include 
+CXX_INCLUDES = -I/robocup-cxx/includeDebug -I/robocup-cxx/boost/include -I/robocup-cxx/log4cxx/include -I/robocup-cxx/pigpio/include 
 

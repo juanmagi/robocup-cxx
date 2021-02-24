@@ -8428,6 +8428,8 @@ boost/core/swap.hpp
 
 ../boost/include/boost/visit_each.hpp
 
+../includeDebug/modo.h
+
 ../log4cxx/include/log4cxx/appender.h
 log4cxx/spi/optionhandler.h
 -
@@ -8637,6 +8639,10 @@ CConfig.h
 /robocup-cxx/CConfig.h
 string
 -
+modo.h
+/robocup-cxx/modo.h
+log4cxx/logger.h
+/robocup-cxx/log4cxx/logger.h
 log4cxx/logger.h
 /robocup-cxx/log4cxx/logger.h
 boost/property_tree/ptree.hpp

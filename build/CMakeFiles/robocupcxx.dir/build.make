@@ -95,6 +95,7 @@ robocupcxx: CMakeFiles/robocupcxx.dir/main.cpp.o
 robocupcxx: CMakeFiles/robocupcxx.dir/CConfig.cpp.o
 robocupcxx: CMakeFiles/robocupcxx.dir/build.make
 robocupcxx: ../log4cxx/lib/liblog4cxx.so
+robocupcxx: ../pigpio/lib/libpigpiod_if2.so
 robocupcxx: ../boost/lib/libboost_date_time.a
 robocupcxx: ../boost/lib/libboost_regex.a
 robocupcxx: ../boost/lib/libboost_serialization.a

@@ -5,7 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/log4cxx.0.11.0/include",
-                "${workspaceFolder}/boost/include"
+                "${workspaceFolder}/boost/include",
+                "${workspaceFolder}/pigpio/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

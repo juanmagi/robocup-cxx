@@ -782,6 +782,7 @@ CMakeFiles/test_movil.dir/CConfig.cpp.o: ../boost/include/boost/utility/result_o
 CMakeFiles/test_movil.dir/CConfig.cpp.o: ../boost/include/boost/utility/swap.hpp
 CMakeFiles/test_movil.dir/CConfig.cpp.o: ../boost/include/boost/version.hpp
 CMakeFiles/test_movil.dir/CConfig.cpp.o: ../boost/include/boost/visit_each.hpp
+CMakeFiles/test_movil.dir/CConfig.cpp.o: ../includeDebug/modo.h
 CMakeFiles/test_movil.dir/CConfig.cpp.o: ../log4cxx/include/log4cxx/appender.h
 CMakeFiles/test_movil.dir/CConfig.cpp.o: ../log4cxx/include/log4cxx/helpers/appenderattachableimpl.h
 CMakeFiles/test_movil.dir/CConfig.cpp.o: ../log4cxx/include/log4cxx/helpers/charsetencoder.h
@@ -1592,6 +1593,7 @@ CMakeFiles/test_movil.dir/test_movil.cpp.o: ../boost/include/boost/utility/resul
 CMakeFiles/test_movil.dir/test_movil.cpp.o: ../boost/include/boost/utility/swap.hpp
 CMakeFiles/test_movil.dir/test_movil.cpp.o: ../boost/include/boost/version.hpp
 CMakeFiles/test_movil.dir/test_movil.cpp.o: ../boost/include/boost/visit_each.hpp
+CMakeFiles/test_movil.dir/test_movil.cpp.o: ../includeDebug/modo.h
 CMakeFiles/test_movil.dir/test_movil.cpp.o: ../log4cxx/include/log4cxx/appender.h
 CMakeFiles/test_movil.dir/test_movil.cpp.o: ../log4cxx/include/log4cxx/appenderskeleton.h
 CMakeFiles/test_movil.dir/test_movil.cpp.o: ../log4cxx/include/log4cxx/config/propertysetter.h
@@ -1645,6 +1647,8 @@ CMakeFiles/test_movil.dir/test_movil.cpp.o: ../log4cxx/include/log4cxx/spi/loggi
 CMakeFiles/test_movil.dir/test_movil.cpp.o: ../log4cxx/include/log4cxx/spi/optionhandler.h
 CMakeFiles/test_movil.dir/test_movil.cpp.o: ../log4cxx/include/log4cxx/writerappender.h
 CMakeFiles/test_movil.dir/test_movil.cpp.o: ../log4cxx/include/log4cxx/xml/domconfigurator.h
+CMakeFiles/test_movil.dir/test_movil.cpp.o: ../pigpio/include/pigpio.h
+CMakeFiles/test_movil.dir/test_movil.cpp.o: ../pigpio/include/pigpiod_if2.h
 CMakeFiles/test_movil.dir/test_movil.cpp.o: ../CConfig.h
 CMakeFiles/test_movil.dir/test_movil.cpp.o: ../test_movil.cpp
 

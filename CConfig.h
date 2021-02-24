@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include "modo.h"
+#include "log4cxx/logger.h"
 #include "log4cxx/logger.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>

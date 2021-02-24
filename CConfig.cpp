@@ -30,7 +30,7 @@ void CConfig::load(const string &filename,const string &modo)
         gpio_pin_key_ccw = tree.get<int>("comun.gpio.pin_key_ccw");
         gpio_pin_act_cw = tree.get<int>("comun.gpio.pin_act_cw");
         gpio_pin_act_ccw = tree.get<int>("comun.gpio.pin_act_ccw");
-        gpio_pin_act_on_movil = tree.get<int>("comun.gpio.act_on_movil");
+        gpio_pin_act_on_movil = tree.get<int>("comun.gpio.pin_act_on_movil");
         gpio_pin_inp_dah = tree.get<int>("comun.gpio.pin_inp_dah");
         gpio_pin_inp_encoder = tree.get<int>("comun.gpio.pin_inp_encoder");
         pigpio_server = tree.get<string>("comun.pigpio.server");
@@ -67,7 +67,7 @@ void CConfig::load(const string &filename,const string &modo)
         if (i!=-1) gpio_pin_act_cw=i;
         i = gpio_pin_act_ccw = tree.get<int>("desarrollo.gpio.pin_act_ccw",-1);
         if (i!=-1) gpio_pin_act_ccw=i;
-        i = gpio_pin_act_on_movil = tree.get<int>("desarrollo.gpio.act_on_movil",-1);
+        i = gpio_pin_act_on_movil = tree.get<int>("desarrollo.gpio.pin_act_on_movil",-1);
         if (i!=-1) gpio_pin_act_on_movil=i;
         i = gpio_pin_inp_dah = tree.get<int>("desarrollo.gpio.pin_inp_dah",-1);
         if (i!=-1) gpio_pin_inp_dah=i;
@@ -108,7 +108,7 @@ void CConfig::load(const string &filename,const string &modo)
         if (i!=-1) gpio_pin_act_cw=i;
         i = gpio_pin_act_ccw = tree.get<int>("produccion.gpio.pin_act_ccw",-1);
         if (i!=-1) gpio_pin_act_ccw=i;
-        i = gpio_pin_act_on_movil = tree.get<int>("produccion.gpio.act_on_movil",-1);
+        i = gpio_pin_act_on_movil = tree.get<int>("produccion.gpio.pin_act_on_movil",-1);
         if (i!=-1) gpio_pin_act_on_movil=i;
         i = gpio_pin_inp_dah = tree.get<int>("produccion.gpio.pin_inp_dah",-1);
         if (i!=-1) gpio_pin_inp_dah=i;

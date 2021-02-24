@@ -95,6 +95,7 @@ test_movil: CMakeFiles/test_movil.dir/test_movil.cpp.o
 test_movil: CMakeFiles/test_movil.dir/CConfig.cpp.o
 test_movil: CMakeFiles/test_movil.dir/build.make
 test_movil: ../log4cxx/lib/liblog4cxx.so
+test_movil: ../pigpio/lib/libpigpiod_if2.so
 test_movil: CMakeFiles/test_movil.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/robocup-cxx/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable test_movil"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/test_movil.dir/link.txt --verbose=$(VERBOSE)
