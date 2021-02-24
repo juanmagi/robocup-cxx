@@ -48,6 +48,14 @@ int main(int /*argc*/, char **/*argv*/){
     cout << "pigpiod Versión: " << get_pigpio_version(m_pi_id) << endl;
     cout << "pigpiod_if2 Versión: " << pigpiod_if_version() << endl;
 
+    int handle=serial_open(m_pi_id, "/dev/rfcomm0", 9600, 0);
+    if (handle < 0 ){
+        cout << "Error al abrir el puerto serie" << endl;
+    } else {
+        cout << "Puerto serie abierto" << endl;
+        serial_close(m_pi_id, handle);
+    }
+
     pigpio_stop(m_pi_id);
 
     std::cout << "TODO OK!\n";
