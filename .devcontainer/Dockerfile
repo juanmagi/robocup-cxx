@@ -30,6 +30,7 @@ RUN apt-get update \
     && apt -y install cmake gdb \
     && apt -y install libapr1-dev libaprutil1-dev gzip zip \
     && apt -y install locales \
+    && apt -y install libserial-dev \
     #
     #
     # Create a non-root user to use if preferred - see https://aka.ms/vscode-remote/containers/non-root-user.

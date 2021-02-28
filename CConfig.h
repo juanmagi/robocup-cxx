@@ -39,6 +39,9 @@ class CConfig
     string pigpio_server;
     string pigpio_port;
 
+    //puerto serie
+    string serial_nombre;
+
 
     //Log
     string log_fichero;

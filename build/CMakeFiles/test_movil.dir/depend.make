@@ -1651,4 +1651,5 @@ CMakeFiles/test_movil.dir/test_movil.cpp.o: ../pigpio/include/pigpio.h
 CMakeFiles/test_movil.dir/test_movil.cpp.o: ../pigpio/include/pigpiod_if2.h
 CMakeFiles/test_movil.dir/test_movil.cpp.o: ../CConfig.h
 CMakeFiles/test_movil.dir/test_movil.cpp.o: ../test_movil.cpp
+CMakeFiles/test_movil.dir/test_movil.cpp.o: ../test_movil.h
 
