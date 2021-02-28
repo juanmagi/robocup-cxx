@@ -42,6 +42,7 @@ target_link_libraries(robocupcxx
 target_link_libraries(test_movil 
     ${LOG4CXX_LIBRARY}
     ${PIGPIO_LIBRARY}
+    /usr/lib/arm-linux-gnueabihf/libserial.so
     )
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

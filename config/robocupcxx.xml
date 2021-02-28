@@ -21,6 +21,9 @@
         <server>172.17.0.1</server>
         <port>8888</port>
     </pigpio>
+    <serial>
+        <nombre>/dev/rfcomm0</nombre>
+    </serial>
     <log>
         <fichero>/var/log/gimon/robocupcxx.log</fichero>
          <!--Los niveles son: OFF,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,ALL-->

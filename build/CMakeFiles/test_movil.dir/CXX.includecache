@@ -8945,6 +8945,8 @@ boost/property_tree/xml_parser.hpp
 /robocup-cxx/test_movil.cpp
 iostream
 -
+SerialPort.h
+-
 log4cxx/logger.h
 /robocup-cxx/log4cxx/logger.h
 log4cxx/xml/domconfigurator.h
@@ -8961,4 +8963,10 @@ pigpiod_if2.h
 /robocup-cxx/pigpiod_if2.h
 CConfig.h
 /robocup-cxx/CConfig.h
+test_movil.h
+/robocup-cxx/test_movil.h
+
+/robocup-cxx/test_movil.h
+string
+-
 
