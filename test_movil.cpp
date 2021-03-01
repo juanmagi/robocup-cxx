@@ -248,10 +248,12 @@ string parametros(string respuesta,int posicion){
 
     vector<string> dato;
     size_t pos = 0;
-    int i=0;
-    dato[0]=datos;
-    while ((pos = datos.find(":")) != string::npos) {
-        dato[i++] = datos.substr(0, pos);
+    dato.push_back(datos);
+    for (int i=0;(pos = datos.find(":")) != string::npos;i++) {
+        if (i==0)
+            dato[0]=datos.substr(0, pos);
+        else 
+            dato.push_back(datos.substr(0, pos));
         datos.erase(0, pos + 1);
     }
 
