@@ -1,6 +1,7 @@
 pigpio-master
 boost-1.75.0
 build
+core
 
 # Prerequisites
 *.d
