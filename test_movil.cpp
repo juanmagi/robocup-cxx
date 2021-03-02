@@ -234,12 +234,14 @@ string enviar(string orden){
         return "";
     }
 
+    respuesta.erase(respuesta.find("\r\n"),2);
     LOG4CXX_DEBUG (logger,orden + "-->" + respuesta);
     return respuesta;
 }
 
 string parametros(string respuesta,int posicion){
     string datos;
+    
     if (posicion==1 && respuesta.find("=") != string::npos){
         datos=respuesta.substr(respuesta.find("=")+1);
     } else {
