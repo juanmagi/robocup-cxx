@@ -250,11 +250,9 @@ string parametros(string respuesta,int posicion){
     size_t pos = 0;
     dato.push_back(datos);
     for (int i=0;(pos = datos.find(":")) != string::npos;i++) {
-        if (i==0)
-            dato[0]=datos.substr(0, pos);
-        else 
-            dato.push_back(datos.substr(0, pos));
+        dato[i]=datos.substr(0, pos);
         datos.erase(0, pos + 1);
+        dato.push_back(datos);
     }
 
 

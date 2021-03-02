@@ -4,11 +4,13 @@
     // Para más información, visite: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "(gdb) Iniciar",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/test_movilDEB",
+    //        "targetArchitecture": "arm",
+            "program": "${workspaceFolder}/build/test_movil",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
