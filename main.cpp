@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <iostream>
 #include <string>
 #include "log4cxx/logger.h"
@@ -19,7 +20,7 @@ int m_pi_id=0;
 
 int main(int /*argc*/, char **/*argv*/){
 	//Cargamos los parámetros
-	param.load(FICHERO_PARAMETROS,MODO);
+	param.load();
 
 	//Inicializo el sistema de log
 	std :: setlocale ( LC_ALL , "" );
@@ -28,7 +29,7 @@ int main(int /*argc*/, char **/*argv*/){
 	log4cxx::AppenderPtr defaultAppender = nullptr;
 	log4cxx::LayoutPtr   defaultLayout   = nullptr;
 
-	defaultLayout   = new log4cxx::PatternLayout("%p-%d{dd/MMM/yyy-HH:mm:ss}-%m%n");
+	defaultLayout   = new log4cxx::PatternLayout("%p-%d{dd/MMM/yyy-HH:mm:ss,SSS}-%m%n");
 	defaultAppender = new log4cxx::FileAppender(defaultLayout,param.log_fichero);
 	logger->addAppender(defaultAppender);
 	logger->setLevel(param.log_nivel);
@@ -41,5 +42,36 @@ int main(int /*argc*/, char **/*argv*/){
 
     CCupulaFijo cf=CCupulaFijo(&param,m_pi_id);
     CCupulaMovil cm=CCupulaMovil(&param);
+	cf.mover(sentidoMovimiento::CW);
+	for (int i=0;i<1000;i++){
+		cf.getPosicion();
+		usleep(10000);
+	}
+	cf.mover(sentidoMovimiento::CCW);
+	for (int i=0;i<1000;i++){
+		cf.getPosicion();
+		usleep(10000);
+	}
+	cf.mover(sentidoMovimiento::PARADO);
+	for (int i=0;i<1000;i++){
+		cf.getPosicion();
+		usleep(10000);
+	}
+	cf.finalizarThreads();
 
+	Finalizar(EXIT_SUCCESS);
+}
+
+
+void signalHandler( int signum ) {
+	if (logger!=nullptr)
+		LOG4CXX_DEBUG (logger,"SIGTERM Recibido");
+	m_finalizar=true;
+}
+
+
+int Finalizar(int estado){
+    pigpio_stop(m_pi_id);
+    LOG4CXX_INFO (logger,"TODO OK");
+    return estado;            
 }

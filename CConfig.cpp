@@ -1,11 +1,18 @@
 
 #include <iostream>
 #include "CConfig.h"
+CConfig::CConfig(){
 
-void CConfig::load(const string &filename,const string &modo)
+}
+
+CConfig::~CConfig(){
+
+}
+
+void CConfig::load()
 {
-    // Create empty property tree object
-    pt::ptree tree;
+    const string filename=FICHERO_PARAMETROS;
+    const string modo=MODO;
 
     // Parse the XML into the property tree.
 	try {
@@ -42,12 +49,18 @@ void CConfig::load(const string &filename,const string &modo)
         
         log_fichero = tree.get<string>("comun.log.fichero");
         s_log_nivel = tree.get<string>("comun.log.nivel", "INFO");
+
+        cupula_max_posiciones = tree.get<int>(modo + "comun.cupula.max_posiciones");
+        cupula_max_posiciones_simulacion = tree.get<int>(modo + "comun.cupula.max_posiciones");
+        cupula_periodo_simulacion = tree.get<useconds_t>(modo + "comun.cupula.periodo_simulacion");
+        cupula_longitud_onda_simulacion = tree.get<int>(modo + "comun.cupula.longitud_onda_simulacion");
+
 	} catch (const exception &e) {
 		cerr << "En el fichero de parámetros falta un parámetro obligatorio: "<< e.what() << endl;
 		exit(EXIT_FAILURE);
 	}
 
-    string s;double d;int i;
+    string s;double d;int i;useconds_t u;
     i = tree.get<int>(modo + ".general.simulacion",-1);
     if (i!=-1) general_simulacion=i;
 
@@ -91,6 +104,15 @@ void CConfig::load(const string &filename,const string &modo)
     s = tree.get<string>(modo + ".log.nivel", "");
     if (s!="") s_log_nivel=s;
     
+    i = tree.get<int>(modo + ".cupula.max_posiciones",-2);
+    if (i!=-2) cupula_max_posiciones=i;
+    i = tree.get<int>(modo + "comun.cupula.max_posiciones",-1);
+    if (i!=-1) cupula_max_posiciones_simulacion=i;
+    u = tree.get<useconds_t>(modo + "comun.cupula.periodo_simulacion",0);
+    if (u!=0) cupula_periodo_simulacion=u;
+    i= tree.get<int>(modo + "comun.cupula.longitud_onda_simulacion",-1);
+    if (i!=-1) cupula_longitud_onda_simulacion=i;
+
 	if (s_log_nivel=="OFF")	log_nivel=log4cxx::Level::getOff();
 	else if (s_log_nivel=="FATAL") log_nivel=log4cxx::Level::getFatal();
 	else if (s_log_nivel=="ERROR") log_nivel=log4cxx::Level::getError();
@@ -101,4 +123,13 @@ void CConfig::load(const string &filename,const string &modo)
 	else if (s_log_nivel=="ALL") log_nivel=log4cxx::Level::getAll();
 	else log_nivel=log4cxx::Level::getInfo();
 
+}
+
+void CConfig::put_cupula_max_posiciones(int valor){
+    if (MODO=="desarrollo")
+        tree.put("desarrollo.cupula.max_posiciones",valor);
+    else
+        tree.put("produccion.cupula.max_posiciones",valor);
+
+    cupula_max_posiciones=valor;
 }

@@ -13,9 +13,10 @@ namespace pt = boost::property_tree;
 class CConfig
 {
   public:
-    //CConfig();
-    //~CConfig() = default;
-    void load(const string &filename,const string &modo);
+    CConfig();
+    ~CConfig();
+    void load();
+    void put_cupula_max_posiciones(int valor);
 
     //General
     int general_simulacion;
@@ -47,7 +48,14 @@ class CConfig
     string log_fichero;
     log4cxx::LevelPtr log_nivel;
 
+    //Cupula
+    int cupula_max_posiciones;
+    int cupula_max_posiciones_simulacion;
+    useconds_t cupula_periodo_simulacion;  
+    int cupula_longitud_onda_simulacion;
+
   protected:
+    pt::ptree tree;
 
   private:
 };

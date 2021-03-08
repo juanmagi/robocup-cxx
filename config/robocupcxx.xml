@@ -29,6 +29,15 @@
          <!--Los niveles son: OFF,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,ALL-->
         <nivel>DEBUG</nivel>
     </log>
+    <cupula>
+        <max_posiciones>-1</max_posiciones>
+         <!--max_posiciones estará en -1 hasta que no se calibre la cúpula. Para simular el DAH sin haber calibrado se requiere max_posiciones_simulacion. Una vez calibrado, el valor para simu o real será max_posiciones-->
+        <max_posiciones_simulacion>120</max_posiciones_simulacion>
+         <!--microsegundos del pulso cuadrado-->
+        <periodo_simulacion>1000000</periodo_simulacion>
+         <!--unidades de espacio que forman un pulso cuadrado-->
+        <longitud_onda_simulacion>10</longitud_onda_simulacion>
+    </cupula>
 </comun>
 <desarrollo>
     <general>
@@ -42,6 +51,9 @@
          <!--Los niveles son: OFF,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,ALL-->
         <nivel>DEBUG</nivel>
     </log>
+    <cupula>
+        <max_posiciones>-1</max_posiciones>
+    </cupula>
 </desarrollo>
 <produccion>
     <general>
@@ -55,4 +67,7 @@
          <!--Los niveles son: OFF,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,ALL-->
         <nivel>INFO</nivel>
     </log>
+    <cupula>
+        <max_posiciones>-1</max_posiciones>
+    </cupula>
 </produccion>
