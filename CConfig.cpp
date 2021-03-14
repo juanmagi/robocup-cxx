@@ -50,10 +50,10 @@ void CConfig::load()
         log_fichero = tree.get<string>("comun.log.fichero");
         s_log_nivel = tree.get<string>("comun.log.nivel", "INFO");
 
-        cupula_max_posiciones = tree.get<int>(modo + "comun.cupula.max_posiciones");
-        cupula_max_posiciones_simulacion = tree.get<int>(modo + "comun.cupula.max_posiciones");
-        cupula_periodo_simulacion = tree.get<useconds_t>(modo + "comun.cupula.periodo_simulacion");
-        cupula_longitud_onda_simulacion = tree.get<int>(modo + "comun.cupula.longitud_onda_simulacion");
+        cupula_max_posiciones = tree.get<int>("comun.cupula.max_posiciones");
+        cupula_max_posiciones_simulacion = tree.get<int>("comun.cupula.max_posiciones_simulacion");
+        cupula_periodo_simulacion = tree.get<useconds_t>("comun.cupula.periodo_simulacion");
+        cupula_longitud_onda_simulacion = tree.get<int>("comun.cupula.longitud_onda_simulacion");
 
 	} catch (const exception &e) {
 		cerr << "En el fichero de parámetros falta un parámetro obligatorio: "<< e.what() << endl;
@@ -106,11 +106,11 @@ void CConfig::load()
     
     i = tree.get<int>(modo + ".cupula.max_posiciones",-2);
     if (i!=-2) cupula_max_posiciones=i;
-    i = tree.get<int>(modo + "comun.cupula.max_posiciones",-1);
+    i = tree.get<int>(modo + ".cupula.max_posiciones_simulacion",-1);
     if (i!=-1) cupula_max_posiciones_simulacion=i;
-    u = tree.get<useconds_t>(modo + "comun.cupula.periodo_simulacion",0);
+    u = tree.get<useconds_t>(modo + ".cupula.periodo_simulacion",0);
     if (u!=0) cupula_periodo_simulacion=u;
-    i= tree.get<int>(modo + "comun.cupula.longitud_onda_simulacion",-1);
+    i= tree.get<int>(modo + ".cupula.longitud_onda_simulacion",-1);
     if (i!=-1) cupula_longitud_onda_simulacion=i;
 
 	if (s_log_nivel=="OFF")	log_nivel=log4cxx::Level::getOff();
@@ -132,4 +132,10 @@ void CConfig::put_cupula_max_posiciones(int valor){
         tree.put("produccion.cupula.max_posiciones",valor);
 
     cupula_max_posiciones=valor;
+    save();
+}
+
+void CConfig::save(){
+    const string filename=FICHERO_PARAMETROS;
+    pt::write_xml(filename, tree);
 }

@@ -42,23 +42,9 @@ int main(int /*argc*/, char **/*argv*/){
 
     CCupulaFijo cf=CCupulaFijo(&param,m_pi_id);
     CCupulaMovil cm=CCupulaMovil(&param);
-	cf.mover(sentidoMovimiento::CW);
-	for (int i=0;i<1000;i++){
-		cf.getPosicion();
-		usleep(10000);
-	}
-	cf.mover(sentidoMovimiento::CCW);
-	for (int i=0;i<1000;i++){
-		cf.getPosicion();
-		usleep(10000);
-	}
-	cf.mover(sentidoMovimiento::PARADO);
-	for (int i=0;i<1000;i++){
-		cf.getPosicion();
-		usleep(10000);
-	}
-	cf.finalizarThreads();
-
+	cf.calibrate(true);
+	LOG4CXX_DEBUG(logger,"Número de pines: " + to_string(param.cupula_max_posiciones));
+	cf.finalizarThreads(tipoThread::todos);
 	Finalizar(EXIT_SUCCESS);
 }
 

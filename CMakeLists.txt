@@ -25,7 +25,7 @@ set(LOG4CXX_LIBRARY ${CMAKE_SOURCE_DIR}/log4cxx/lib/liblog4cxx.so)
 set(PIGPIO_LIBRARY ${CMAKE_SOURCE_DIR}/pigpio/lib/libpigpiod_if2.so)
 set(SERIAL_LIBRARY /usr/lib/arm-linux-gnueabihf/libserial.so)
 
-add_executable(robocupcxx main.cpp CConfig.cpp CCupulaMovil.cpp CCupulaFijo.cpp CEncoder.cpp CEncoderReal.cpp CEncoderSimulado.cpp)
+add_executable(robocupcxx main.cpp CConfig.cpp CCupulaMovil.cpp CCupulaFijo.cpp)
 add_executable(test_movil test_movil.cpp CConfig.cpp)
 add_executable(prueba prueba.cpp)
 

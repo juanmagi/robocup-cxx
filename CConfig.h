@@ -17,6 +17,7 @@ class CConfig
     ~CConfig();
     void load();
     void put_cupula_max_posiciones(int valor);
+    void save();
 
     //General
     int general_simulacion;

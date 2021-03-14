@@ -21,7 +21,7 @@ SerialPort *p_puerto_serie=nullptr;
 
 int main(int /*argc*/, char **/*argv*/){
 	//Cargamos los parámetros
-	param.load(FICHERO_PARAMETROS,MODO);
+	param.load();
 
 	//Inicializo el sistema de log
 	std :: setlocale ( LC_ALL , "" );
