@@ -17,10 +17,12 @@ CCupulaFijo::CCupulaFijo(CConfig *pParametros, int pi_ID)
     pParam = pParametros;
     piID = pi_ID;
     pLogger = log4cxx::Logger::getRootLogger();
-    //    for (int i=0;i<100;i++)
-    //        mapaPines[i]=false;
 
-    //TODO Hay que leer las posiciones máximas en el disco. Ahi se guarda cuando se calibra la parte fija. Si no se ha calibrado nunca, tendra -1
+    mapaPines[pParam->gpio_pin_act_ccw] = true;
+    mapaPines[pParam->gpio_pin_act_cw] = true;
+    mapaPines[pParametros->gpio_pin_act_on_movil] = true;
+    mapaPines[pParam->gpio_pin_inp_dah] = true;
+    mapaPines[pParam->gpio_pin_inp_encoder] = true;
 
     if (pParam->general_simulacion == 0)
     {
@@ -31,6 +33,11 @@ CCupulaFijo::CCupulaFijo(CConfig *pParametros, int pi_ID)
             return;
         }
         if (errCode = set_mode(piID, pParam->gpio_pin_act_cw, PI_OUTPUT) != 0)
+        {
+            LOG4CXX_FATAL(pLogger, "Error estableciendo las características del pin gpio_pin_act_cw con código de error: " + to_string(errCode));
+            return;
+        }
+        if (errCode = set_mode(piID, pParam->gpio_pin_act_on_movil, PI_OUTPUT) != 0)
         {
             LOG4CXX_FATAL(pLogger, "Error estableciendo las características del pin gpio_pin_act_cw con código de error: " + to_string(errCode));
             return;
@@ -56,6 +63,11 @@ CCupulaFijo::CCupulaFijo(CConfig *pParametros, int pi_ID)
             LOG4CXX_FATAL(pLogger, "Error estableciendo las características del pin gpio_pin_act_cw con código de error: " + to_string(errCode));
             return;
         }
+        if (errCode = gpio_write(piID, pParam->gpio_pin_act_on_movil, PI_HIGH) != 0)
+        {
+            LOG4CXX_FATAL(pLogger, "Error estableciendo las características del pin gpio_pin_act_cw con código de error: " + to_string(errCode));
+            return;
+        }
 
         if (errCode = set_pull_up_down(piID, pParam->gpio_pin_inp_dah, PI_PUD_UP) != 0)
         {
@@ -70,12 +82,9 @@ CCupulaFijo::CCupulaFijo(CConfig *pParametros, int pi_ID)
     }
     else
     { //Si es simulación
-        mapaPines[pParam->gpio_pin_act_ccw] = true;
-        mapaPines[pParam->gpio_pin_act_cw] = true;
-        mapaPines[pParam->gpio_pin_inp_dah] = true;
-        mapaPines[pParam->gpio_pin_inp_encoder] = true;
         pEncoderSimulator = new thread(runEncoderSimulator, pParametros);
     }
+
     pEncoder = new thread(runEncoder, pParametros, pi_ID);
 }
 
@@ -92,7 +101,7 @@ void CCupulaFijo::runEncoder(CConfig *pParametros, int pi_ID)
     int pinEncoder = pParametros->gpio_pin_inp_encoder;
     int valor, valorAnterior;
     bool darPosicionAbsoluta = true;
-    int tiempoEntreLecturas = 10000;
+    int tiempoEntreLecturas = pParametros->cupula_tiempo_entre_lecturas;
     log4cxx::LoggerPtr pLoggerLocal = log4cxx::Logger::getRootLogger();
 
     if (pParametros->cupula_max_posiciones < 0)
@@ -132,6 +141,10 @@ void CCupulaFijo::runEncoder(CConfig *pParametros, int pi_ID)
             }
             valorAnterior = valor;
             usleep(tiempoEntreLecturas);
+            if (estadoDAH(pParametros, pi_ID))
+                onCupulaMovil(pParametros, pi_ID, true);
+            else
+                onCupulaMovil(pParametros, pi_ID, false);
         }
     }
     else //NO es simulación, es real
@@ -228,7 +241,8 @@ void CCupulaFijo::runEncoderSimulator(CConfig *pParametros)
 
 void CCupulaFijo::runStop(CConfig *pParametros, int pi_ID, tipoPosicion tp, int posRelIni)
 {
-    int tiempoEntreLecturas = 10000;
+    log4cxx::LoggerPtr pLoggerLocal = log4cxx::Logger::getRootLogger();
+    int tiempoEntreLecturas = pParametros->cupula_tiempo_entre_lecturas;
 
     switch (tp)
     {
@@ -295,6 +309,19 @@ void CCupulaFijo::runStop(CConfig *pParametros, int pi_ID, tipoPosicion tp, int 
     case tipoPosicion::relativa:
         if (sentido == sentidoMovimiento::CW)
         {
+            if (posicionRelativa > posicionRelativaFinal)
+            {
+                if (pParametros->cupula_max_posiciones == -1)
+                { //No calibrada
+                    LOG4CXX_DEBUG(pLoggerLocal, "La cúpula no está calibrada. No se puede hacer un movimiento relativo por el camino más largo. La cúpula se para");
+                    posicionRelativaFinal = posicionRelativa;
+                }
+                else
+                {
+                    int resultadoEntero = posicionRelativa / pParametros->cupula_max_posiciones;
+                    posicionRelativaFinal = posicionRelativaFinal + (resultadoEntero + 1) * pParametros->cupula_max_posiciones;
+                }
+            }
             while (posicionRelativa < posicionRelativaFinal)
             {
                 if (mapaPines[tipoThread::stop] == true)
@@ -305,6 +332,19 @@ void CCupulaFijo::runStop(CConfig *pParametros, int pi_ID, tipoPosicion tp, int 
         }
         else
         { //sentido CCW
+            if (posicionRelativa < posicionRelativaFinal)
+            {
+                if (pParametros->cupula_max_posiciones == -1)
+                { //No calibrada
+                    LOG4CXX_DEBUG(pLoggerLocal, "La cúpula no está calibrada. No se puede hacer un movimiento relativo por el camino más largo. La cúpula se para");
+                    posicionRelativaFinal = posicionRelativa;
+                }
+                else
+                {
+                    int resultadoEntero = posicionRelativa / pParametros->cupula_max_posiciones;
+                    posicionRelativaFinal = posicionRelativaFinal - (resultadoEntero + 1) * pParametros->cupula_max_posiciones;
+                }
+            }
             while (posicionRelativa > posicionRelativaFinal)
             {
                 if (mapaPines[tipoThread::stop] == true)
@@ -320,16 +360,8 @@ void CCupulaFijo::runStop(CConfig *pParametros, int pi_ID, tipoPosicion tp, int 
             int posicionFinal = posRelIni + pParametros->cupula_max_posiciones;
             while (posicionRelativa < posicionFinal)
             {
-                if (pParametros->general_simulacion == 1)
-                {
-                    if (mapaPines[pParametros->gpio_pin_inp_dah] == false)
-                        break;
-                }
-                else
-                {
-                    if (gpio_read(pi_ID, pParametros->gpio_pin_inp_dah) == PI_LOW)
-                        break;
-                }
+                if (estadoDAH(pParametros, pi_ID))
+                    break;
                 if (mapaPines[tipoThread::stop] == true)
                     break;
                 usleep(tiempoEntreLecturas);
@@ -341,7 +373,7 @@ void CCupulaFijo::runStop(CConfig *pParametros, int pi_ID, tipoPosicion tp, int 
             int posicionFinal = posRelIni - pParametros->cupula_max_posiciones;
             while (posicionRelativa > posicionFinal)
             {
-                if (gpio_read(pi_ID, pParametros->gpio_pin_inp_dah) == PI_LOW)
+                if (estadoDAH(pParametros, pi_ID))
                     break;
                 if (mapaPines[tipoThread::stop] == true)
                     break;
@@ -378,14 +410,58 @@ void CCupulaFijo::runStop(CConfig *pParametros, int pi_ID, tipoPosicion tp, int 
         break;
     }
 }
-void CCupulaFijo::onCupulaMovil(bool on)
+void CCupulaFijo::onCupulaMovil(CConfig *pParametros, int pi_ID, bool on)
 {
+    log4cxx::LoggerPtr pLoggerLocal = log4cxx::Logger::getRootLogger();
+    if (on)
+    {
+        if (mapaPines[pParametros->gpio_pin_act_on_movil] == false)
+            return;
+        LOG4CXX_DEBUG(pLoggerLocal, "Corriente ON a cúpula móvil");
+        mapaPines[pParametros->gpio_pin_act_on_movil] = false;
+        if (pParametros->general_simulacion == 0)
+        {
+            gpio_write(pi_ID, pParametros->gpio_pin_act_on_movil, PI_LOW);
+        }
+    }
+    else
+    {
+        if (mapaPines[pParametros->gpio_pin_act_on_movil] == true)
+            return;
+        LOG4CXX_DEBUG(pLoggerLocal, "Corriente OFF a cúpula móvil");
+        mapaPines[pParametros->gpio_pin_act_on_movil] = true;
+        if (pParametros->general_simulacion == 0)
+        {
+            gpio_write(pi_ID, pParametros->gpio_pin_act_on_movil, PI_HIGH);
+        }
+    }
 }
 
-int CCupulaFijo::getPosicion()
+int CCupulaFijo::getPosicion(int angulo)
 {
-    LOG4CXX_DEBUG(pLogger, "valor del encoder: " + to_string(mapaPines[pParam->gpio_pin_inp_encoder]));
-    return 0;
+    if (pParam->cupula_max_posiciones == -1)
+    {
+        LOG4CXX_DEBUG(pLogger, "No se puede calcular la posición si la cúpula no está calibrada");
+        return -1;
+    }
+
+    if (angulo == -1)
+        return posicionAbsoluta;
+    else
+        return (angulo * pParam->cupula_max_posiciones) / 360;
+}
+
+int CCupulaFijo::getAngulo(int posicion)
+{
+    if (pParam->cupula_max_posiciones == -1)
+    {
+        LOG4CXX_DEBUG(pLogger, "No se puede calcular el ángulo si la cúpula no está calibrada");
+        return -1;
+    }
+    if (posicion == -1)
+        return (posicionAbsoluta * 360) / pParam->cupula_max_posiciones;
+    else
+        return (posicion * 360) / pParam->cupula_max_posiciones;
 }
 
 void CCupulaFijo::mover(sentidoMovimiento sm)
@@ -429,20 +505,26 @@ void CCupulaFijo::mover(sentidoMovimiento sm)
         switch (sm)
         {
         case sentidoMovimiento::CW:
+            mapaPines[pParam->gpio_pin_act_cw] = true;
             if ((errCode = gpio_write(piID, pParam->gpio_pin_act_cw, PI_HIGH)) != 0)
                 LOG4CXX_ERROR(pLogger, "Error gpio_write: " + to_string(errCode));
+            mapaPines[pParam->gpio_pin_act_ccw] = false;
             if ((errCode = gpio_write(piID, pParam->gpio_pin_act_ccw, PI_LOW)) != 0)
                 LOG4CXX_ERROR(pLogger, "Error gpio_write: " + to_string(errCode));
             break;
         case sentidoMovimiento::CCW:
+            mapaPines[pParam->gpio_pin_act_ccw] = true;
             if ((errCode = gpio_write(piID, pParam->gpio_pin_act_ccw, PI_HIGH)) != 0)
                 LOG4CXX_ERROR(pLogger, "Error gpio_write: " + to_string(errCode));
+            mapaPines[pParam->gpio_pin_act_cw] = false;
             if ((errCode = gpio_write(piID, pParam->gpio_pin_act_cw, PI_LOW)) != 0)
                 LOG4CXX_ERROR(pLogger, "Error gpio_write: " + to_string(errCode));
             break;
         case sentidoMovimiento::PARADO:
+            mapaPines[pParam->gpio_pin_act_cw] = true;
             if ((errCode = gpio_write(piID, pParam->gpio_pin_act_cw, PI_HIGH)) != 0)
                 LOG4CXX_ERROR(pLogger, "Error gpio_write: " + to_string(errCode));
+            mapaPines[pParam->gpio_pin_act_ccw] = true;
             if ((errCode = gpio_write(piID, pParam->gpio_pin_act_ccw, PI_HIGH)) != 0)
                 LOG4CXX_ERROR(pLogger, "Error gpio_write: " + to_string(errCode));
             break;
@@ -516,8 +598,8 @@ bool CCupulaFijo::estadoDAH(CConfig *pParametros, int pi_ID)
     log4cxx::LoggerPtr pLoggerLocal = log4cxx::Logger::getRootLogger();
 
     if (pParametros->general_simulacion == 1)
-    {                                                 //Simulación
-        if (posicionAbsoluta==-1) //Cúpula no calibrada o sin origen establecido. Hay que trabajar con posición relativa
+    {                               //Simulación
+        if (posicionAbsoluta == -1) //Cúpula no calibrada o sin origen establecido. Hay que trabajar con posición relativa
         {
             int max_posiciones = pParametros->cupula_max_posiciones_simulacion;
             if (posicionRelativa % max_posiciones == 0)
@@ -575,11 +657,38 @@ void CCupulaFijo::operarPosicionAbsoluta(CConfig *pParametros, int valor)
 
 sentidoMovimiento CCupulaFijo::sentidoMasCorto(int pos)
 {
-    int posActual = getPosicion();
-    if (pos > posActual)
-        return sentidoMovimiento::CW;
-    else
+    int anguloActual = getAngulo();
+    int anguloFinal = getAngulo(pos);
+    int angulo1 = anguloFinal - anguloActual;
+    int angulo2 = 360 - abs(angulo1);
+    if (abs(angulo1) < angulo2)
+        if (angulo1 > 0)
+            return sentidoMovimiento::CW;
+        else
+            return sentidoMovimiento::CCW;
+    else if (angulo1 > 0)
         return sentidoMovimiento::CCW;
+    else
+        return sentidoMovimiento::CW;
+}
+
+void CCupulaFijo::setAngulo(sentidoMovimiento sm, tipoPosicion tp, int angulo)
+{
+    int posicion;
+    if (tp == tipoPosicion::relativa)
+    {
+        int nuevoAngulo = getAngulo() + angulo;
+        if (nuevoAngulo > 359)
+            nuevoAngulo -= 360;
+        if (nuevoAngulo < 0)
+            nuevoAngulo += 360;
+        posicion = getPosicion(nuevoAngulo);
+    }
+    else
+    {
+        posicion = getPosicion(angulo);
+    }
+    setPosicion(sm, tp, posicion);
 }
 
 void CCupulaFijo::setPosicion(sentidoMovimiento sm, tipoPosicion tp, int posicion)
@@ -609,11 +718,18 @@ void CCupulaFijo::setPosicion(sentidoMovimiento sm, tipoPosicion tp, int posicio
     switch (tp)
     {
     case tipoPosicion::relativa:
-        posicionRelativaFinal += posicion;
-        if (posicion > 0)
-            smFinal = sentidoMovimiento::CW;
+        posicionRelativaFinal = posicionRelativa + posicion;
+        if (pParam->cupula_max_posiciones == -1)
+        { //si la cúpula no está calibrada, el sentido de movimiento sólo puede ser el más corto
+            if (sm == sentidoMovimiento::CW && (posicionRelativaFinal < posicionRelativa))
+                smFinal = sentidoMovimiento::CCW;
+            else if (sm == sentidoMovimiento::CCW && (posicionRelativaFinal > posicionRelativa))
+                smFinal = sentidoMovimiento::CW;
+            else
+                smFinal = sm;
+        }
         else
-            smFinal = sentidoMovimiento::CCW;
+            smFinal = sm;
         break;
     case tipoPosicion::absoluta:
         posicionAbsolutaFinal = posicion;
@@ -661,14 +777,17 @@ void CCupulaFijo::DomeAtHome(bool valor)
     { //Vamos al DAH + 20 CW
         if (estadoDAH())
         {
-            setPosicion(sentidoMovimiento::CW, tipoPosicion::absoluta, 20);
+            setPosicion(sentidoMovimiento::CW, tipoPosicion::relativa, 20);
             return;
         }
-        if (posicionAbsoluta == -1)
-            setPosicion(sentidoMovimiento::CW, tipoPosicion::dah, 0);
         else
-            setPosicion(sentidoMovimiento::CORTA, tipoPosicion::dah, 0);
-        setPosicion(sentidoMovimiento::CW, tipoPosicion::absoluta, 10);
+        {
+            if (posicionAbsoluta == -1)
+                setPosicion(sentidoMovimiento::CW, tipoPosicion::dah, 0);
+            else
+                setPosicion(sentidoMovimiento::CORTA, tipoPosicion::dah, 0);
+            setPosicion(sentidoMovimiento::CW, tipoPosicion::relativa, 20);
+        }
     }
 }
 
@@ -684,8 +803,10 @@ void CCupulaFijo::pararMovimiento(CConfig *pParametros, int pi_ID)
     }
     else
     {
+        mapaPines[pParametros->gpio_pin_act_cw] = true;
         if ((errCode = gpio_write(pi_ID, pParametros->gpio_pin_act_cw, PI_HIGH)) != 0)
             LOG4CXX_ERROR(pLoggerLocal, "Error gpio_write: " + to_string(errCode));
+        mapaPines[pParametros->gpio_pin_act_ccw] = true;
         if ((errCode = gpio_write(pi_ID, pParametros->gpio_pin_act_ccw, PI_HIGH)) != 0)
             LOG4CXX_ERROR(pLoggerLocal, "Error gpio_write: " + to_string(errCode));
     }
@@ -693,19 +814,48 @@ void CCupulaFijo::pararMovimiento(CConfig *pParametros, int pi_ID)
     sentido = sentidoMovimiento::PARADO;
 }
 
-void CCupulaFijo::calibrate(bool recalibrar)
+void CCupulaFijo::calibrate(bool recalibrar /*=false*/, bool moverAdah /*=true*/)
 {
-    if (pParam->cupula_max_posiciones>-1 && !recalibrar) //Ya está calibrado y no se pide recalibrar, salir
+    if (pParam->cupula_max_posiciones > -1 && !recalibrar)
+    { //Ya está calibrado y no se pide recalibrar, llevar la cúpula a DAH y salir
+        if (moverAdah)
+        {
+            DomeAtHome(true);
+            posicionRelativa = 0;
+            posicionAbsoluta = 0;
+        }
+        else
+        { //Si no se deja ir a DAH, se comprueba si ya lo estamos y en ese caso también se posiciona la cúpula
+            if (estadoDAH())
+            {
+                posicionRelativa = 0;
+                posicionAbsoluta = 0;
+            }
+        }
         return;
+    }
 
     int errCode;
     //Nos movemos en sentido CW hasta que encontremos el DAH y pasamos 10 unidades
-    DomeAtHome(true);
+    DomeAtHome(false);
+    //Esperamos a que la cúpula se pinga en marcha
+    while (sentido == sentidoMovimiento::PARADO)
+    {
+        LOG4CXX_DEBUG(pLogger, "Pin dah: " + to_string(mapaPines[pParam->gpio_pin_inp_dah]) + " Pin encoder " + to_string(mapaPines[pParam->gpio_pin_inp_encoder]) + " Posición: " + to_string(posicionRelativa));
+        usleep(10000);
+    }
+    //Esperamos a que se pare la cúpula
+    while (sentido != sentidoMovimiento::PARADO)
+    {
+        LOG4CXX_DEBUG(pLogger, "Pin dah: " + to_string(mapaPines[pParam->gpio_pin_inp_dah]) + " Pin encoder " + to_string(mapaPines[pParam->gpio_pin_inp_encoder]) + " Posición: " + to_string(posicionRelativa));
+        usleep(10000);
+    }
     //Giramos en sentido CCW
     setPosicion(sentidoMovimiento::CCW, tipoPosicion::manual, 0);
     //Esperamos hasta que se detecte DAH y entonces de define la posición 0
     while (!estadoDAH(pParam, piID))
     {
+        LOG4CXX_DEBUG(pLogger, "Pin dah: " + to_string(mapaPines[pParam->gpio_pin_inp_dah]) + " Pin encoder " + to_string(mapaPines[pParam->gpio_pin_inp_encoder]) + " Posición: " + to_string(posicionRelativa));
     }
     int posicionInicial = posicionRelativa;
     //Esperamos hasta que se salga de DAH

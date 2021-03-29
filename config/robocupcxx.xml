@@ -1,63 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <comun>
-    
-    
-    
-    
-    
-    
-<general>
-        
-    <simulacion>1</simulacion></general><gpio>
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-    <pin_led_reset>2</pin_led_reset><pin_led_ccw>3</pin_led_ccw><pin_led_cw>9</pin_led_cw><pin_led_dah>10</pin_led_dah><pin_led_encoder>15</pin_led_encoder><pin_key_reset>7</pin_key_reset><pin_key_cw>8</pin_key_cw><pin_key_ccw>11</pin_key_ccw><pin_act_cw>20</pin_act_cw><pin_act_ccw>21</pin_act_ccw><pin_act_on_movil>26</pin_act_on_movil><pin_inp_dah>13</pin_inp_dah><pin_inp_encoder>12</pin_inp_encoder></gpio><pigpio>
-        
-        
-    <server>172.17.0.1</server><port>8888</port></pigpio><serial>
-        
-    <nombre>/dev/rfcomm0</nombre></serial><log>
-                
-        
-    <fichero>/var/log/gimon/robocupcxx.log</fichero><!--Los niveles son: OFF,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,ALL--><nivel>DEBUG</nivel></log><cupula>
-                
-                
-                
-        
-    <max_posiciones>-1</max_posiciones><!--max_posiciones estará en -1 hasta que no se calibre la cúpula. Para simular el DAH sin haber calibrado se requiere max_posiciones_simulacion. Una vez calibrado, el valor para simu o real será max_posiciones--><max_posiciones_simulacion>120</max_posiciones_simulacion><!--microsegundos del pulso cuadrado--><periodo_simulacion>1000000</periodo_simulacion><!--unidades de espacio que forman un pulso cuadrado--><longitud_onda_simulacion>10</longitud_onda_simulacion></cupula></comun><desarrollo>
-    
-    
-    
-    
-    
-<general>
-        
-    <simulacion>1</simulacion></general><gpio/><pigpio/><log>        
-        
-    <!--Los niveles son: OFF,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,ALL--><nivel>DEBUG</nivel></log><cupula>
-        
-        
-    <max_posiciones>10</max_posiciones><max_posiciones_simulacion>10</max_posiciones_simulacion></cupula></desarrollo><produccion>
-    
-    
-    
-    
-    
-<general>
-        
-    <simulacion>0</simulacion></general><gpio/><pigpio/><log>        
-        
-    <!--Los niveles son: OFF,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,ALL--><nivel>INFO</nivel></log><cupula>
-        
-    <max_posiciones>-1</max_posiciones></cupula></produccion>
+    <general>
+        <simulacion>1</simulacion>
+    </general>
+    <gpio>
+        <pin_led_reset>2</pin_led_reset>
+        <pin_led_ccw>3</pin_led_ccw>
+        <pin_led_cw>9</pin_led_cw>
+        <pin_led_dah>10</pin_led_dah>
+        <pin_led_encoder>15</pin_led_encoder>
+        <pin_key_reset>7</pin_key_reset>
+        <pin_key_cw>8</pin_key_cw>
+        <pin_key_ccw>11</pin_key_ccw>
+        <pin_act_cw>20</pin_act_cw>
+        <pin_act_ccw>21</pin_act_ccw>
+        <pin_act_on_movil>26</pin_act_on_movil>
+        <pin_inp_dah>13</pin_inp_dah>
+        <pin_inp_encoder>12</pin_inp_encoder>
+    </gpio>
+    <pigpio>
+        <server>172.17.0.1</server>
+        <port>8888</port>
+    </pigpio>
+    <serial>
+        <nombre>/dev/rfcomm0</nombre>
+    </serial>
+    <log>
+        <fichero>/var/log/gimon/robocupcxx.log</fichero>        <!--Los niveles son: OFF,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,ALL-->
+        <nivel>DEBUG</nivel>
+    </log>
+    <cupula>
+        <max_posiciones>-1</max_posiciones>        <!--max_posiciones estará en -1 hasta que no se calibre la cúpula. Para simular el DAH sin haber calibrado se requiere max_posiciones_simulacion. Una vez calibrado, el valor para simu o real será max_posiciones-->
+        <max_posiciones_simulacion>120</max_posiciones_simulacion>        <!--microsegundos del pulso cuadrado-->
+        <periodo_simulacion>1000000</periodo_simulacion>        <!--unidades de espacio que forman un pulso cuadrado-->
+        <longitud_onda_simulacion>10</longitud_onda_simulacion>
+        <tiempo_entre_lecturas>50000</tiempo_entre_lecturas>
+    </cupula>
+</comun>
+<desarrollo>
+    <general>
+        <simulacion>1</simulacion>
+    </general>
+    <gpio/>
+    <pigpio/>
+    <log>        <!--Los niveles son: OFF,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,ALL-->
+        <nivel>DEBUG</nivel>
+    </log>
+    <cupula>
+        <max_posiciones>60</max_posiciones>
+        <max_posiciones_simulacion>60</max_posiciones_simulacion>
+    </cupula>
+</desarrollo>
+<produccion>
+    <general>
+        <simulacion>0</simulacion>
+    </general>
+    <gpio/>
+    <pigpio/>
+    <log>        <!--Los niveles son: OFF,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,ALL-->
+        <nivel>INFO</nivel>
+    </log>
+    <cupula>
+        <max_posiciones>-1</max_posiciones>
+    </cupula>
+</produccion>

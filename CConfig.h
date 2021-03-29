@@ -54,6 +54,7 @@ class CConfig
     int cupula_max_posiciones_simulacion;
     useconds_t cupula_periodo_simulacion;  
     int cupula_longitud_onda_simulacion;
+    useconds_t cupula_tiempo_entre_lecturas;
 
   protected:
     pt::ptree tree;

@@ -54,6 +54,7 @@ void CConfig::load()
         cupula_max_posiciones_simulacion = tree.get<int>("comun.cupula.max_posiciones_simulacion");
         cupula_periodo_simulacion = tree.get<useconds_t>("comun.cupula.periodo_simulacion");
         cupula_longitud_onda_simulacion = tree.get<int>("comun.cupula.longitud_onda_simulacion");
+        cupula_tiempo_entre_lecturas = tree.get<useconds_t>("comun.cupula.tiempo_entre_lecturas");
 
 	} catch (const exception &e) {
 		cerr << "En el fichero de parámetros falta un parámetro obligatorio: "<< e.what() << endl;
@@ -112,6 +113,8 @@ void CConfig::load()
     if (u!=0) cupula_periodo_simulacion=u;
     i= tree.get<int>(modo + ".cupula.longitud_onda_simulacion",-1);
     if (i!=-1) cupula_longitud_onda_simulacion=i;
+    u = tree.get<useconds_t>(modo + ".cupula.tiempo_entre_lecturas",0);
+    if (u!=0) cupula_tiempo_entre_lecturas=u;
 
 	if (s_log_nivel=="OFF")	log_nivel=log4cxx::Level::getOff();
 	else if (s_log_nivel=="FATAL") log_nivel=log4cxx::Level::getFatal();

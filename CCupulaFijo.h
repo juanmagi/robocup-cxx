@@ -18,7 +18,6 @@ private:
     std::thread *pStop = nullptr;
 
     //Funciones convencionales
-    void onCupulaMovil(bool on);
     sentidoMovimiento sentidoMasCorto(int pos);
 
 
@@ -39,9 +38,11 @@ en DAH
     *   false: la cúpula no está en DAH
     */
     bool estadoDAH() { return estadoDAH(pParam, piID); }
-    int getPosicion();
+    int getPosicion(int angulo=-1);
+    int getAngulo(int posicion=-1);
     void setPosicion(sentidoMovimiento sm, tipoPosicion tp,int posicion);
-    void calibrate(bool recalibrar = false);
+    void setAngulo(sentidoMovimiento sm, tipoPosicion tp,int angulo);
+    void calibrate(bool recalibrar = false, bool moverAdah=true);
     void mover(sentidoMovimiento sm);
     /*  Para el movimiento de la cúpula
     */
@@ -49,12 +50,20 @@ en DAH
     void finalizarThreads(tipoThread valor);
 
     //Funciones static
-    /*  Versión static de la función que indica si la cúula está o no está en DAH. Se puede llamar desde dentro de los threads.
+
+    /*  Para el movimiento de la parte fija de la cúpula
+    *   Param:
+    *       CConfig *pParametros: Puntero al objeto de configuración
+    *       int pi_ID: ID del pigpio
+    *   Return: 
+    *       Ninguno
+    */
+    static void pararMovimiento(CConfig *pParametros, int pi_ID);
+    /*  Versión static de la función que indica si la cúpula está o no está en DAH. Se puede llamar desde dentro de los threads.
     *   Return:
     *   true: la cúpula está en DAH
     *   false: la cúpula no está en DAH
     */
-    static void pararMovimiento(CConfig *pParametros, int pi_ID);
     static bool estadoDAH(CConfig *pParametros, int pi_ID);
     static void operarPosicionAbsoluta(CConfig *pParametros, int valor);
     /*  Código del Thread que controla los pines de encoder y dah
@@ -66,6 +75,9 @@ en DAH
     /*  Código del Thread que simula un encoder
     */
     static void runStop(CConfig *pParametros, int pi_ID,tipoPosicion tp,int posRelIni);
+    /*  Activa el rele que da correinte a la parte móvil
+    */
+    static void onCupulaMovil(CConfig *pParametros, int pi_ID,bool on);
 
     //Variables convencionales
     
