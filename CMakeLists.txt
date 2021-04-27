@@ -27,7 +27,7 @@ set(SERIAL_LIBRARY /usr/lib/arm-linux-gnueabihf/libserial.so)
 
 add_executable(robocupcxx main.cpp CConfig.cpp CCupulaMovil.cpp CCupulaFijo.cpp)
 add_executable(test_movil test_movil.cpp CConfig.cpp)
-add_executable(prueba prueba.cpp)
+add_executable(prueba prueba.cpp CConfig.cpp CCupulaMovil.cpp CCupulaFijo.cpp)
 
 include_directories(boost/include
         log4cxx/include
@@ -54,6 +54,12 @@ target_link_libraries(test_movil
 target_link_libraries(prueba 
     ${LOG4CXX_LIBRARY}
     ${PIGPIO_LIBRARY}
+    ${SERIAL_LIBRARY}
+    ${BOOST_LIBRARY}/libboost_date_time.a    
+    ${BOOST_LIBRARY}/libboost_regex.a    
+    ${BOOST_LIBRARY}/libboost_serialization.a    
+    ${BOOST_LIBRARY}/libboost_system.a    
+    ${BOOST_LIBRARY}/libboost_thread.a    
     )
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

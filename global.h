@@ -4,6 +4,9 @@
 #include "log4cxx/logger.h"
 #include <boost/property_tree/ptree.hpp>
 
+//Versión
+#define FIRMWARE_VERSION "250421"
+
 typedef std::unordered_map<std::string, std::string> stringmap;
 enum sentidoMovimiento
 {
@@ -28,9 +31,10 @@ enum tipoThread
     encoderSimulator = 99
 };
 
+enum tipoTriestado {OFF=0,ON=1,ERROR=-1};
 struct triestado
 {
-    int estado; //0=OFF, 1=ON, -1=ERROR
+    tipoTriestado estado; //0=OFF, 1=ON, -1=ERROR
     string mensaje;
 };
 

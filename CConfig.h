@@ -22,6 +22,10 @@ class CConfig
     //General
     int general_simulacion;
 
+    //Websocket
+    string websocket_local_ip;
+    string websocket_port;
+
     //gpio
     int gpio_pin_led_reset;
     int gpio_pin_led_ccw;

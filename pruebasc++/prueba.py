@@ -8,7 +8,7 @@ import websockets
 async def hello():
     uri = "ws://localhost:8080"
     async with websockets.connect(uri) as websocket:
-        name = input("What's your name? ")
+        name = input("¿Orden? ")
 
         await websocket.send(name)
         print(f"> {name}")
@@ -16,6 +16,6 @@ async def hello():
         greeting = await websocket.recv()
         print(f"< {greeting}")
 
-asyncio.get_event_loop().run_until_complete(hello())
-
+while True:
+    asyncio.get_event_loop().run_until_complete(hello())
 

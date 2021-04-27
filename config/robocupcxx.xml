@@ -3,6 +3,10 @@
     <general>
         <simulacion>1</simulacion>
     </general>
+    <websocket>
+        <local_ip>0.0.0.0</local_ip>
+        <port>8080</port>
+    </websocket>
     <gpio>
         <pin_led_reset>2</pin_led_reset>
         <pin_led_ccw>3</pin_led_ccw>

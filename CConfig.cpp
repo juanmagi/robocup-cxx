@@ -28,6 +28,9 @@ void CConfig::load()
 	try {
         general_simulacion = tree.get<int>("comun.general.simulacion");
 
+        websocket_local_ip = tree.get<string>("comun.websocket.local_ip");
+        websocket_port = tree.get<string>("comun.websocket.port");
+
         gpio_pin_led_reset = tree.get<int>("comun.gpio.pin_led_reset");
         gpio_pin_led_ccw = tree.get<int>("comun.gpio.pin_led_ccw");
         gpio_pin_led_cw = tree.get<int>("comun.gpio.pin_led_cw");
@@ -64,6 +67,11 @@ void CConfig::load()
     string s;double d;int i;useconds_t u;
     i = tree.get<int>(modo + ".general.simulacion",-1);
     if (i!=-1) general_simulacion=i;
+
+    s = tree.get<string>(modo + ".websocket.local_ip","");
+    if (s!="") websocket_local_ip=s;
+    s = tree.get<string>(modo + ".websocket.port","");
+    if (s!="") websocket_port=s;
 
     i = tree.get<int>(modo + ".gpio.pin_led_reset",-1);
     if (i!=-1) gpio_pin_led_reset=i;
