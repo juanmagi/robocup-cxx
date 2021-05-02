@@ -17,6 +17,7 @@
 
 #include <cstdlib>
 #include <functional>
+#include <atomic>
 #include <thread>
 #include <unistd.h>
 #include <iostream>
@@ -49,8 +50,22 @@ log4cxx::LoggerPtr logger(log4cxx::Logger::getRootLogger());
 CConfig param;
 bool m_finalizar = false;
 int m_pi_id = 0;
-CCupulaFijo cf = CCupulaFijo(&param, m_pi_id);;
-CCupulaMovil cm = CCupulaMovil(&param);
+atomic_flag afMensajes = ATOMIC_FLAG_INIT;
+enum estadoMensaje
+{
+    VACIO,
+    PETICION,
+    RESPUESTA
+};
+struct stMensaje
+{
+    atomic<estadoMensaje> estado;
+    string peticion;
+    string respuesta;
+};
+unordered_map<std::thread::id, stMensaje *> mensajes;
+atomic<bool> conexionVivo(true);
+
 //------------------------------------------------------------------------------
 
 int main(int argc, char *argv[])
@@ -77,26 +92,71 @@ int main(int argc, char *argv[])
     }
 
     //Inicialización de los objetos cúpula
-    //cf = &CCupulaFijo(&param, m_pi_id);
-    //cm = &CCupulaMovil(&param);
-    cf.set_pi_id(m_pi_id);
-
+    CCupulaFijo cf = CCupulaFijo(&param, m_pi_id);
+    CCupulaMovil cm = CCupulaMovil(&param);
 
     if (cm.conectar() == EXIT_FAILURE)
     {
-        LOG4CXX_ERROR(logger, "no es posible conectar con la parte móvil");
+        LOG4CXX_FATAL(logger, "no es posible conectar con la parte móvil");
         cf.finalizarThreads(tipoThread::todos);
         return Finalizar(EXIT_FAILURE);
     }
 
-    string respuesta;
-    cm.getFirmwareVersion(respuesta);
+    //string respuesta;
+    //cm.getFirmwareVersion(respuesta);
+    thread *pConexion = new thread(do_conexion, param.websocket_local_ip, param.websocket_port);
 
-    //A la espera de conexión
+    //Bucle de ejecución
+    while (conexionVivo)
+    {
+        while (afMensajes.test_and_set()) //Espero hasta poder acceder a la cola de mensajes
+        {
+        }
+
+        //Iteramos por toda la cola atendiendo los mensajes
+        if (mensajes.empty())
+        {
+            afMensajes.clear();
+            usleep(1000);
+        }
+        else
+        {
+            for (auto &it : mensajes)
+            {
+                if (it.second->estado == estadoMensaje::PETICION)
+                {
+                    if (tratamientoMensaje(it.second->peticion, it.second->respuesta, cf, cm) == EXIT_SUCCESS)
+                    {
+                        it.second->estado = estadoMensaje::RESPUESTA;
+                    }
+                    else
+                    {
+                        it.second->estado = estadoMensaje::RESPUESTA;
+                        afMensajes.clear();
+                        LOG4CXX_FATAL(logger, "Error en la función tratamientoMensaje");
+                        cf.finalizarThreads(tipoThread::todos);
+                        delete pConexion; //No puedo matar el thread porque normalmnte está bloqueado en acceptor
+                        return Finalizar(EXIT_FAILURE);
+                    }
+                }
+            }
+            afMensajes.clear();
+        }
+    }
+    LOG4CXX_FATAL(logger, "listener websockets se ha muerto"); //No lo rearranco porque es sintoma deque algo va mal
+    delete pConexion;
+    cf.finalizarThreads(tipoThread::todos);
+    return Finalizar(EXIT_FAILURE);
+}
+//------------------------------------------------------------------------------
+
+// Thread con la gestión de la conexión IP
+void do_conexion(string ip, string ip_port)
+{
     try
     {
-        auto const address = net::ip::make_address(param.websocket_local_ip);
-        auto const port = static_cast<unsigned short>(stoul(param.websocket_port));
+        auto const address = net::ip::make_address(ip);
+        auto const port = static_cast<unsigned short>(stoul(ip_port));
 
         // The io_context is required for all I/O
         net::io_context ioc{1};
@@ -109,24 +169,32 @@ int main(int argc, char *argv[])
             tcp::socket socket{ioc};
 
             // Block until we get a connection
-            LOG4CXX_DEBUG(logger, "Esperando conexión en IP: " + param.websocket_local_ip + "PORT: " + param.websocket_port);
-            acceptor.accept(socket);
+            LOG4CXX_DEBUG(logger, "Esperando conexión en IP: " + ip + "PORT: " + ip_port);
+            try
+            {
+                acceptor.accept(socket);
+            }
+            catch (const std::exception &e)
+            {
+                LOG4CXX_ERROR(logger, "Error en el listener INTERNO de websocket: " + string(e.what()));
+                continue;
+            }
 
             // Launch the session, transferring ownership of the socket
-            std::thread(&do_session, std::move(socket), &cf, &cm).detach();
+            //std::thread(&do_session, std::move(socket), &cf, &cm).detach();
+            std::thread(&do_session, std::move(socket)).detach();
         }
     }
     catch (const std::exception &e)
     {
         LOG4CXX_ERROR(logger, "Error en el listener de websocket: " + string(e.what()));
-        cf.finalizarThreads(tipoThread::todos);
-        return Finalizar(EXIT_FAILURE);
     }
+    conexionVivo = false;
 }
-//------------------------------------------------------------------------------
 
 // Thread con la gestión del socket
-void do_session(tcp::socket socket, CCupulaFijo *pcf, CCupulaMovil *pcm)
+//void do_session(tcp::socket socket, CCupulaFijo *pcf, CCupulaMovil *pcm)
+void do_session(tcp::socket socket)
 {
     log4cxx::LoggerPtr pLoggerLocal = log4cxx::Logger::getRootLogger();
 
@@ -159,11 +227,36 @@ void do_session(tcp::socket socket, CCupulaFijo *pcf, CCupulaMovil *pcm)
             LOG4CXX_DEBUG(pLoggerLocal, "Mensaje Recibido: " + s);
 
             string r;
-            tratamientoMensaje(s, r, pcf, pcm);
+            stMensaje *pMsj;
+            while (afMensajes.test_and_set())
+            {
+            }
+            try
+            {
+                pMsj = mensajes.at(this_thread::get_id());
+            }
+            catch (const std::out_of_range &oor)
+            {
+                pMsj = new stMensaje;
+            }
+            pMsj->estado = estadoMensaje::PETICION;
+            pMsj->peticion = s;
+            mensajes[this_thread::get_id()] = pMsj;
+            afMensajes.clear();
+            while (pMsj->estado != estadoMensaje::RESPUESTA)
+            {
+                this_thread::yield();
+            }
+            while (afMensajes.test_and_set())
+            {
+            }
+            r = pMsj->respuesta;
+            pMsj->estado == estadoMensaje::VACIO;
+            afMensajes.clear();
 
             // Enviar respuesta
             ws.text(ws.got_text());
-            net::const_buffer bufferR(r.c_str(),r.length());
+            net::const_buffer bufferR(r.c_str(), r.length());
             ws.write(bufferR);
         }
     }
@@ -177,6 +270,13 @@ void do_session(tcp::socket socket, CCupulaFijo *pcf, CCupulaMovil *pcm)
     {
         LOG4CXX_ERROR(pLoggerLocal, "Error en el listener de wiebsocket: " + string(e.what()));
     }
+
+    while (afMensajes.test_and_set())
+    {
+    }
+    delete mensajes[this_thread::get_id()];
+    mensajes.erase(this_thread::get_id());
+    afMensajes.clear();
 }
 //------------------------------------------------------------------------------
 
@@ -196,7 +296,8 @@ int Finalizar(int estado)
 }
 //------------------------------------------------------------------------------
 
-int tratamientoMensaje(string s, string &r, CCupulaFijo *pcf, CCupulaMovil *pcm)
+int tratamientoMensaje(string s, string &r, CCupulaFijo &cf, CCupulaMovil &cm)
+//int tratamientoMensaje(string s, string &r)
 {
     log4cxx::LoggerPtr pLoggerLocal = log4cxx::Logger::getRootLogger();
     string orden;
@@ -229,8 +330,14 @@ int tratamientoMensaje(string s, string &r, CCupulaFijo *pcf, CCupulaMovil *pcm)
         {
             if (vParametros[0] == "fija")
                 parte = "fija";
-            else
+            else if (vParametros[0] == "movil")
                 parte = "movil";
+            else
+            {
+                LOG4CXX_ERROR(pLoggerLocal, "Error en el tratamiento del mensaje: " + s + " orden: " + orden + " - Parámetro inconsistente");
+                r = "KO=Parametro inconsistente";
+                return EXIT_SUCCESS;
+            }
         }
         else
         {
@@ -247,7 +354,7 @@ int tratamientoMensaje(string s, string &r, CCupulaFijo *pcf, CCupulaMovil *pcm)
         }
         else
         {
-            if (pcm->getFirmwareVersion(version) == EXIT_SUCCESS)
+            if (cm.getFirmwareVersion(version) == EXIT_SUCCESS)
             {
                 r = "OK=";
                 r += version;

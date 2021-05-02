@@ -112,7 +112,6 @@ public:
         Ninguna
     */
     void finalizarThreads(tipoThread valor);
-    void set_pi_id(int pi_id) { piID = pi_id; }
 
     //Funciones static
 

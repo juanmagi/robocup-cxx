@@ -2,7 +2,8 @@
 #include <boost/asio/ip/tcp.hpp>
 #include "global.h"
 
-void do_session(boost::asio::ip::tcp::socket socket, CCupulaFijo *pcf, CCupulaMovil *pcm);
+void do_conexion(std::string ip,std::string ip_port);
+void do_session(boost::asio::ip::tcp::socket socket);
 void signalHandler( int signum );
 int Finalizar(int estado);
 //------------------------------------------------------------------------------
@@ -15,4 +16,4 @@ int Finalizar(int estado);
 //  cm: Objeto parte móvil de la cúpula
 // 
 //------------------------------------------------------------------------------
-int tratamientoMensaje(std::string s, std::string &r, CCupulaFijo *pcf, CCupulaMovil *pcm);
+int tratamientoMensaje(std::string s, std::string &r, CCupulaFijo &cf, CCupulaMovil &cm);
