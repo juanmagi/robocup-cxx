@@ -18,6 +18,12 @@ CCupulaFijo::CCupulaFijo(CConfig *pParametros, int pi_ID)
     piID = pi_ID;
     pLogger = log4cxx::Logger::getRootLogger();
 
+    //Se informa en la variable de estado si la cúpula ya está físicamente calibrada
+    if (pParam->cupula_max_posiciones > -1)
+        estadoCalibrado=estadosCalibrado::NO_CALIBRADO_LOGICO;
+    else
+        estadoCalibrado=estadosCalibrado::NO_CALIBRADO_FISICO;
+
     mapaPines[pParam->gpio_pin_act_ccw] = true;
     mapaPines[pParam->gpio_pin_act_cw] = true;
     mapaPines[pParametros->gpio_pin_act_on_movil] = true;
@@ -173,6 +179,10 @@ void CCupulaFijo::runEncoder(CConfig *pParametros, int pi_ID)
             }
             valorAnterior = valor;
             usleep(tiempoEntreLecturas);
+            if (estadoDAH(pParametros, pi_ID))
+                onCupulaMovil(pParametros, pi_ID, true);
+            else
+                onCupulaMovil(pParametros, pi_ID, false);
         }
     }
 }
@@ -823,6 +833,7 @@ void CCupulaFijo::calibrate(bool recalibrar /*=false*/, bool moverAdah /*=true*/
             DomeAtHome(true);
             posicionRelativa = 0;
             posicionAbsoluta = 0;
+            estadoCalibrado = estadosCalibrado::CALIBRADO;
         }
         else
         { //Si no se deja ir a DAH, se comprueba si ya lo estamos y en ese caso también se posiciona la cúpula
@@ -830,6 +841,7 @@ void CCupulaFijo::calibrate(bool recalibrar /*=false*/, bool moverAdah /*=true*/
             {
                 posicionRelativa = 0;
                 posicionAbsoluta = 0;
+                estadoCalibrado = estadosCalibrado::CALIBRADO;
             }
         }
         return;
@@ -837,8 +849,9 @@ void CCupulaFijo::calibrate(bool recalibrar /*=false*/, bool moverAdah /*=true*/
 
     int errCode;
     //Nos movemos en sentido CW hasta que encontremos el DAH y pasamos 10 unidades
+    estadoCalibrado = estadosCalibrado::MOVIENDO_A_DAH_PLUS;
     DomeAtHome(false);
-    //Esperamos a que la cúpula se pinga en marcha
+    //Esperamos a que la cúpula se ponga en marcha
     while (sentido == sentidoMovimiento::PARADO)
     {
         LOG4CXX_DEBUG(pLogger, "Pin dah: " + to_string(mapaPines[pParam->gpio_pin_inp_dah]) + " Pin encoder " + to_string(mapaPines[pParam->gpio_pin_inp_encoder]) + " Posición: " + to_string(posicionRelativa));
@@ -850,7 +863,9 @@ void CCupulaFijo::calibrate(bool recalibrar /*=false*/, bool moverAdah /*=true*/
         LOG4CXX_DEBUG(pLogger, "Pin dah: " + to_string(mapaPines[pParam->gpio_pin_inp_dah]) + " Pin encoder " + to_string(mapaPines[pParam->gpio_pin_inp_encoder]) + " Posición: " + to_string(posicionRelativa));
         usleep(10000);
     }
+    estadoCalibrado = estadosCalibrado::EN_DAH_PLUS;
     //Giramos en sentido CCW
+    estadoCalibrado = estadosCalibrado::MOVIENDO_A_DAH;
     setPosicion(sentidoMovimiento::CCW, tipoPosicion::manual, 0);
     //Esperamos hasta que se detecte DAH y entonces de define la posición 0
     while (!estadoDAH(pParam, piID))
@@ -870,6 +885,7 @@ void CCupulaFijo::calibrate(bool recalibrar /*=false*/, bool moverAdah /*=true*/
     }
     int posicionFinal = posicionRelativa;
     parar();
+    estadoCalibrado = estadosCalibrado::EN_DAH;
     sleep(5); //Espero segundos hasta que se pare completamente la cúpula
     int inercia = abs(posicionRelativa - posicionFinal);
     posicionRelativa = -inercia;
@@ -878,4 +894,5 @@ void CCupulaFijo::calibrate(bool recalibrar /*=false*/, bool moverAdah /*=true*/
         posicionAbsoluta = pParam->cupula_max_posiciones - inercia;
     else
         posicionAbsoluta = 0;
+    estadoCalibrado = estadosCalibrado::CALIBRADO;
 }

@@ -16,4 +16,4 @@ int Finalizar(int estado);
 //  cm: Objeto parte móvil de la cúpula
 // 
 //------------------------------------------------------------------------------
-int tratamientoMensaje(std::string s, std::string &r, CCupulaFijo &cf, CCupulaMovil &cm);
+int tratamientoMensaje(std::string s, std::string &r, CCupulaFijo &cf, CCupulaMovil &cm,CConfig &param);

@@ -50,6 +50,13 @@ public:
     */
     int conectar();
     /*
+    Cancela la comunicación con el arduino de la parte móvil vía bluetooth
+    return:
+        EXIT_FAILURE, error en la conexión. El mensaje de error se escribe en el log
+        EXIT_SUCCESS, desconexión correcta
+    */
+    int desconectar();
+    /*
     Devuelve el estado de la luz de la cúpula
     param:
         salida, el estado de la luz
@@ -93,7 +100,7 @@ public:
     */
     int latido();
     /*
-    calibra el movimieto de la ventana
+    calibra el movimiento de la ventana
     param:
         accion
             CALIBRATE: Ordena el inicio del calibrado
@@ -101,7 +108,7 @@ public:
             PUT: Graba la información de calibrado
         dc, estructura para datos de calibrado
     return:
-        El resultado de la comunicación. También se puede informar error si el level solictado es inexistente
+        El resultado de la comunicación.
     */
     int calibrate(std::string accion, datosCalibrado &dc);
     /*

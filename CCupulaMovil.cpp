@@ -10,16 +10,17 @@ CCupulaMovil::CCupulaMovil(CConfig *pParametros)
 
 CCupulaMovil::~CCupulaMovil()
 {
-    if (p_puerto_serie != nullptr)
-    {
-        p_puerto_serie->Close();
-        LOG4CXX_DEBUG(pLogger, "Puerto serie cerrado");
-        delete p_puerto_serie;
-    }
+    desconectar();
 }
 
 int CCupulaMovil::conectar()
 {
+    if (p_puerto_serie != nullptr)
+    {
+        LOG4CXX_ERROR(pLogger, "No se puede abrir la conexión porque ya está establecida");
+        return EXIT_FAILURE;
+    }
+
     p_puerto_serie = new SerialPort(pParam->serial_nombre);
 
     try
@@ -32,6 +33,31 @@ int CCupulaMovil::conectar()
         return EXIT_FAILURE;
     }
 
+    return EXIT_SUCCESS;
+}
+
+int CCupulaMovil::desconectar()
+{
+    if (p_puerto_serie == nullptr)
+    {
+        LOG4CXX_ERROR(pLogger, "No se puede cerrar la conexión porque no está establecida");
+        return EXIT_FAILURE;
+    }
+
+    try
+    {
+        p_puerto_serie->Close();
+    }
+    catch (SerialPort::OpenFailed E)
+    {
+        p_puerto_serie = nullptr;
+        LOG4CXX_FATAL(pLogger, "Error cerrando la conexión BLUETOOTH.");
+        return EXIT_FAILURE;
+    }
+
+    LOG4CXX_DEBUG(pLogger, "Puerto serie cerrado");
+    delete p_puerto_serie;
+    p_puerto_serie = nullptr;
     return EXIT_SUCCESS;
 }
 

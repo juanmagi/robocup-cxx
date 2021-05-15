@@ -95,15 +95,13 @@ int main(int argc, char *argv[])
     CCupulaFijo cf = CCupulaFijo(&param, m_pi_id);
     CCupulaMovil cm = CCupulaMovil(&param);
 
-    if (cm.conectar() == EXIT_FAILURE)
+    /*    if (cm.conectar() == EXIT_FAILURE)
     {
         LOG4CXX_FATAL(logger, "no es posible conectar con la parte móvil");
         cf.finalizarThreads(tipoThread::todos);
         return Finalizar(EXIT_FAILURE);
     }
-
-    //string respuesta;
-    //cm.getFirmwareVersion(respuesta);
+*/
     thread *pConexion = new thread(do_conexion, param.websocket_local_ip, param.websocket_port);
 
     //Bucle de ejecución
@@ -125,7 +123,7 @@ int main(int argc, char *argv[])
             {
                 if (it.second->estado == estadoMensaje::PETICION)
                 {
-                    if (tratamientoMensaje(it.second->peticion, it.second->respuesta, cf, cm) == EXIT_SUCCESS)
+                    if (tratamientoMensaje(it.second->peticion, it.second->respuesta, cf, cm, param) == EXIT_SUCCESS)
                     {
                         it.second->estado = estadoMensaje::RESPUESTA;
                     }
@@ -197,6 +195,9 @@ void do_conexion(string ip, string ip_port)
 void do_session(tcp::socket socket)
 {
     log4cxx::LoggerPtr pLoggerLocal = log4cxx::Logger::getRootLogger();
+    stringstream ss;
+    ss << this_thread::get_id();
+    LOG4CXX_DEBUG(pLoggerLocal, "socket creado:" + ss.str());
 
     try
     {
@@ -258,6 +259,10 @@ void do_session(tcp::socket socket)
             ws.text(ws.got_text());
             net::const_buffer bufferR(r.c_str(), r.length());
             ws.write(bufferR);
+            if (s == "salir" && r == "OK")
+            {
+                break;
+            }
         }
     }
     catch (beast::system_error const &se)
@@ -277,6 +282,7 @@ void do_session(tcp::socket socket)
     delete mensajes[this_thread::get_id()];
     mensajes.erase(this_thread::get_id());
     afMensajes.clear();
+    LOG4CXX_DEBUG(pLoggerLocal, "socket finalizado:" + ss.str());
 }
 //------------------------------------------------------------------------------
 
@@ -296,7 +302,7 @@ int Finalizar(int estado)
 }
 //------------------------------------------------------------------------------
 
-int tratamientoMensaje(string s, string &r, CCupulaFijo &cf, CCupulaMovil &cm)
+int tratamientoMensaje(string s, string &r, CCupulaFijo &cf, CCupulaMovil &cm, CConfig &param)
 //int tratamientoMensaje(string s, string &r)
 {
     log4cxx::LoggerPtr pLoggerLocal = log4cxx::Logger::getRootLogger();
@@ -321,39 +327,91 @@ int tratamientoMensaje(string s, string &r, CCupulaFijo &cf, CCupulaMovil &cm)
         }
     }
 
-    if (orden == "getFirmwareVersion")
+    CConfig::comando c;
+    if (!param.getComando(orden, c))
     {
-        string parte;
-        if (vParametros.size() == 0)
-            parte = "fija";
-        else if (vParametros.size() == 1)
+        LOG4CXX_ERROR(pLoggerLocal, "Error en el tratamiento del mensaje: " + s + " orden: " + orden + " - La orden no existe");
+        r = "KO=la orden no existe";
+        return EXIT_SUCCESS;
+    }
+
+    //Se verifica que no haya más parámetros de los necesarios
+    if (c.num_param < vParametros.size())
+    {
+        LOG4CXX_ERROR(pLoggerLocal, "Error en el tratamiento del mensaje: " + s + " orden: " + orden + " - Número de parámetros incorrectos");
+        r = "KO=Numero de parametros incorrectos";
+        return EXIT_SUCCESS;
+    }
+
+    //Se verifica que los parámetros informados tengan valores aceptables
+    int i, j;
+    bool paramOK = false;
+    for (i = 0; i < vParametros.size(); i++)
+    {
+        for (j = 0; j < c.parametros[i].size(); j++)
         {
-            if (vParametros[0] == "fija")
-                parte = "fija";
-            else if (vParametros[0] == "movil")
-                parte = "movil";
-            else
+            try
             {
-                LOG4CXX_ERROR(pLoggerLocal, "Error en el tratamiento del mensaje: " + s + " orden: " + orden + " - Parámetro inconsistente");
-                r = "KO=Parametro inconsistente";
-                return EXIT_SUCCESS;
+                if (c.parametros[i][j] == "_int_")
+                {
+                    int valor = stoi(vParametros[i]);
+                }
+                else if (c.parametros[i][j] == "_long_")
+                {
+                    long valor = stol(vParametros[i]);
+                }
+                else if (c.parametros[i][j] == "_ulong_")
+                {
+                    unsigned long valor = stoul(vParametros[i]);
+                }
+                else if (c.parametros[i][j] == "_uint_")
+                {
+                    unsigned long valor = stoul(vParametros[i]);
+                }
+            }
+            catch (const exception &e)
+            {
+                break;
+            }
+
+            if (c.parametros[i][j] == vParametros[i])
+            {
+                paramOK = true;
+                break;
             }
         }
-        else
+        if (!paramOK)
         {
-            LOG4CXX_ERROR(pLoggerLocal, "Error en el tratamiento del mensaje: " + s + " orden: " + orden + " - Número de parámetros incorrectos");
-            r = "KO=Numero de parametros incorrectos";
+            LOG4CXX_ERROR(pLoggerLocal, "Error en el tratamiento del mensaje: " + s + " orden: " + orden + " - Parámetro inconsistente");
+            r = "KO=Parametro inconsistente";
             return EXIT_SUCCESS;
         }
+        paramOK = false;
+    }
 
+    //Se asignan valores por defecto de los parámetros no informados
+    for (i = vParametros.size(); i < c.num_param; i++)
+    {
+        if (c.parametros[i][0][0] == '_') //Si se encuenta,por ejemplo, un "_int_", este debe ser el último y no tiene valor por defecto, por tanto se acaba la sustitución
+            break;
+        vParametros.push_back(c.parametros[i][0]);
+    }
+
+    //Ejecución del comando
+    if (orden == "salir")
+    {
+        r = "OK";
+    }
+    else if (orden == "getFirmwareVersion")
+    {
         string version;
-        if (parte == "fija")
+        if (vParametros[0] == "fija")
         {
             r = "OK=";
             r += FIRMWARE_VERSION;
         }
         else
-        {
+        { //Parte móvil
             if (cm.getFirmwareVersion(version) == EXIT_SUCCESS)
             {
                 r = "OK=";
@@ -366,13 +424,165 @@ int tratamientoMensaje(string s, string &r, CCupulaFijo &cf, CCupulaMovil &cm)
                 r += "Puede ser un error de comunicación con la parte móvil";
             }
         }
-        return EXIT_SUCCESS;
+    }
+    else if (orden == "getDomeAtHome")
+    {
+        if (cf.estadoDAH())
+        {
+            r = "OK=";
+            r += "si";
+        }
+        else
+        {
+            r = "OK=";
+            r += "no";
+        }
+    }
+    else if (orden == "setDomeAtHome")
+    {
+        cf.setPosicion(sentidoMovimiento::CORTA, tipoPosicion::dah, 0);
+        r = "OK";
+    }
+    else if (orden == "getPosicion")
+    {
+        r = "OK=";
+        r += to_string(cf.getAngulo());
+    }
+    else if (orden == "setPosicion")
+    {
+        int grados;
+        sentidoMovimiento sm;
+        tipoPosicion tp;
+
+        if (vParametros.size() == 3)
+        {
+            grados = stoi(vParametros[2]);
+            if (grados < -360 || grados > 360)
+            {
+                LOG4CXX_ERROR(pLoggerLocal, "Error en el tratamiento del mensaje: " + s + " orden: " + orden + " - Parámetro 3 inconsistente");
+                r = "KO=Parametro 3 inconsistente";
+                return EXIT_SUCCESS;
+            }
+        }
+        else
+        {
+            grados = 0;
+        }
+        if (vParametros[0] == "CW")
+            sm = sentidoMovimiento::CW;
+        else if (vParametros[0] == "CCW")
+            sm = sentidoMovimiento::CCW;
+        else if (vParametros[0] == "CORTA")
+            sm = sentidoMovimiento::CORTA;
+
+        if (vParametros[1] == "absluta")
+            tp = tipoPosicion::absoluta;
+        else if (vParametros[1] == "relativa")
+            tp = tipoPosicion::relativa;
+
+        cf.setAngulo(sm, tp, grados);
+        r = "OK";
+    }
+    else if (orden == "calibrar")
+    {
+        bool p1, p2;
+        if (vParametros[0] == "si")
+            p1 = true;
+        else
+            p1 = false;
+        if (vParametros[1] == "si")
+            p2 = true;
+        else
+            p2 = false;
+
+        cf.calibrate(p1, p2);
+        r = "OK";
+    }
+    else if (orden == "estadoCalibrado")
+    {
+        string estado = to_string(cf.getEstadoCalibrado());
+        r = "OK=";
+        r += estado;
+    }
+    else if (orden == "mover")
+    {
+        sentidoMovimiento sm;
+
+        if (vParametros[0] == "CW")
+            sm = sentidoMovimiento::CW;
+        else if (vParametros[0] == "CCW")
+            sm = sentidoMovimiento::CCW;
+
+        cf.mover(sm);
+        r = "OK";
+    }
+    else if (orden == "parar")
+    {
+        cf.parar();
+        r = "OK";
+    }
+    else if (orden == "conectarMovil")
+    {
+        if (!cf.estadoDAH())
+            if (cf.getEstadoCalibrado() == estadosCalibrado::CALIBRADO)
+                cf.setPosicion(sentidoMovimiento::CORTA, tipoPosicion::dah, 0);
+            else
+                cf.DomeAtHome(true);
+
+        int i;
+        for (i = 0; !cf.estadoDAH() && i < 120; i++) //Timeout de 2 minutos
+            sleep(1);
+        if (i >= 120)
+        {
+            LOG4CXX_ERROR(pLoggerLocal, "Timeout al mover la cúpula a DAH en la acción de conectar con la parte fija");
+            r = "KO=Timeout al mover la cúpula a DAH en la acción de conectar con la parte fija";
+            return EXIT_SUCCESS;
+        }
+
+        for (i = 0; !cf.getOnCupulaMovil() && i < 30; i++) //Timeout de 30 segundos
+            sleep(1);
+        if (i >= 30)
+        {
+            LOG4CXX_ERROR(pLoggerLocal, "Timeout al poner en ON la correinte a la parte móvil");
+            r = "KO=Timeout al poner en ON la correinte a la parte móvil";
+            return EXIT_SUCCESS;
+        }
+
+        if (cm.conectar() == EXIT_FAILURE)
+        {
+            LOG4CXX_ERROR(pLoggerLocal, "No es posible conectar con la parte móvil");
+            r = "KO=No es posible conectar con la parte móvil";
+            return EXIT_SUCCESS;
+        }
+        r = "OK";
+    }
+    else if (orden == "getLuz")
+    {
+        triestado estado;
+        if (cm.estadoLuz(estado) == EXIT_FAILURE)
+        {
+            LOG4CXX_ERROR(pLoggerLocal, "Error de comunicación con la parte móvil");
+            r = "KO=Error de comunicación con la parte móvil";
+            return EXIT_SUCCESS;
+        }
+        string respuesta;
+        if (estado.estado == tipoTriestado::ON)
+            respuesta = "ON";
+        else if (estado.estado == tipoTriestado::OFF)
+            respuesta = "OFF";
+        else if (estado.estado == tipoTriestado::ERROR)
+        {
+            respuesta = "ERROR:" + estado.mensaje;
+        }
+        r = "OK=" + respuesta;
     }
     else
     {
-        LOG4CXX_ERROR(pLoggerLocal, "Error en el tratamiento del mensaje: " + s + " orden: " + orden + " - La orden no existe");
-        r = "KO=la orden no existe";
+        LOG4CXX_ERROR(pLoggerLocal, "Error en el tratamiento del mensaje: " + s + " orden: " + orden + " - Comando sin tratamiento implementado");
+        r = "KO=Comando sin tratamiento implementado";
         return EXIT_SUCCESS;
     }
+
+    return EXIT_SUCCESS;
 }
 //------------------------------------------------------------------------------

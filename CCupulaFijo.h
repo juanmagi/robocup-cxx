@@ -16,6 +16,7 @@ private:
     std::thread *pEncoder = nullptr;
     std::thread *pEncoderSimulator = nullptr;
     std::thread *pStop = nullptr;
+    estadosCalibrado estadoCalibrado=estadosCalibrado::NO_CALIBRADO_FISICO;
 
     //Funciones convencionales
     /*
@@ -32,6 +33,7 @@ public:
     ~CCupulaFijo();
 
     //Funciones convencionales
+    estadosCalibrado getEstadoCalibrado(){return estadoCalibrado;}
 
     /*  
     *   Mueve la cúpula al DAH o cerca de ese punto
@@ -39,7 +41,7 @@ public:
     *   false: Desplaza la cupula 20 posiciones en el sentido CW de la posicion DAH
     */
     void DomeAtHome(bool valor);
-    /*  Versión no static de la función que indica si la cúula está o no está en DAH. 
+    /*  Versión no static de la función que indica si la cúpula está o no está en DAH. 
     *   Return:
     *   true: la cúpula está en DAH
     *   false: la cúpula no está en DAH
@@ -112,6 +114,14 @@ public:
         Ninguna
     */
     void finalizarThreads(tipoThread valor);
+
+    /*
+    informa de si la parte móvil tiene o no tiene correiente
+    Param
+    Return
+        true o false dependiende de que tenga o no correinte
+    */
+    bool getOnCupulaMovil(){return !mapaPines[pParam->gpio_pin_act_on_movil];}
 
     //Funciones static
 

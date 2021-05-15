@@ -15,6 +15,7 @@ enum sentidoMovimiento
     CCW,
     CORTA
 };
+
 enum tipoPosicion
 {
     absoluta,
@@ -23,6 +24,7 @@ enum tipoPosicion
     manual,
     vuelta
 };
+
 enum tipoThread
 {
     todos = 96,
@@ -36,6 +38,16 @@ struct triestado
 {
     tipoTriestado estado; //0=OFF, 1=ON, -1=ERROR
     string mensaje;
+};
+
+enum estadosCalibrado {
+    NO_CALIBRADO_FISICO,
+    NO_CALIBRADO_LOGICO,
+    MOVIENDO_A_DAH_PLUS,
+    EN_DAH_PLUS,
+    MOVIENDO_A_DAH,
+    EN_DAH,
+    CALIBRADO
 };
 
 using namespace std;
