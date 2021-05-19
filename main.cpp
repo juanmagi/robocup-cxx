@@ -427,7 +427,7 @@ int tratamientoMensaje(string s, string &r, CCupulaFijo &cf, CCupulaMovil &cm, C
     }
     else if (orden == "getDomeAtHome")
     {
-        if (cf.estadoDAH())
+        if (cf.getDAH())
         {
             r = "OK=";
             r += "si";
@@ -523,14 +523,14 @@ int tratamientoMensaje(string s, string &r, CCupulaFijo &cf, CCupulaMovil &cm, C
     }
     else if (orden == "conectarMovil")
     {
-        if (!cf.estadoDAH())
+        if (!cf.getDAH())
             if (cf.getEstadoCalibrado() == estadosCalibrado::CALIBRADO)
                 cf.setPosicion(sentidoMovimiento::CORTA, tipoPosicion::dah, 0);
             else
-                cf.DomeAtHome(true);
+                cf.setDAH(true);
 
         int i;
-        for (i = 0; !cf.estadoDAH() && i < 120; i++) //Timeout de 2 minutos
+        for (i = 0; !cf.getDAH() && i < 120; i++) //Timeout de 2 minutos
             sleep(1);
         if (i >= 120)
         {
@@ -539,19 +539,20 @@ int tratamientoMensaje(string s, string &r, CCupulaFijo &cf, CCupulaMovil &cm, C
             return EXIT_SUCCESS;
         }
 
-        for (i = 0; !cf.getOnCupulaMovil() && i < 30; i++) //Timeout de 30 segundos
+        for (i = 0; !cf.getCorrienteCupulaMovil() && i < 30; i++) //Timeout de 30 segundos
             sleep(1);
         if (i >= 30)
         {
-            LOG4CXX_ERROR(pLoggerLocal, "Timeout al poner en ON la correinte a la parte móvil");
-            r = "KO=Timeout al poner en ON la correinte a la parte móvil";
+            LOG4CXX_ERROR(pLoggerLocal, "Timeout al poner en ON la corriente a la parte móvil");
+            r = "KO=Timeout al poner en ON la corriente a la parte móvil";
             return EXIT_SUCCESS;
         }
 
-        if (cm.conectar() == EXIT_FAILURE)
+        triestado codret = cm.conectar();
+        if (codret.estado == tipoTriestado::ERROR)
         {
-            LOG4CXX_ERROR(pLoggerLocal, "No es posible conectar con la parte móvil");
-            r = "KO=No es posible conectar con la parte móvil";
+            LOG4CXX_ERROR(pLoggerLocal, "Función conectarMovil- Error: " + codret.mensaje);
+            r = codret.mensaje;
             return EXIT_SUCCESS;
         }
         r = "OK";
@@ -559,10 +560,11 @@ int tratamientoMensaje(string s, string &r, CCupulaFijo &cf, CCupulaMovil &cm, C
     else if (orden == "getLuz")
     {
         triestado estado;
-        if (cm.estadoLuz(estado) == EXIT_FAILURE)
+        triestado codret = cm.getLuz(estado);
+        if (codret.estado == tipoTriestado::ERROR)
         {
-            LOG4CXX_ERROR(pLoggerLocal, "Error de comunicación con la parte móvil");
-            r = "KO=Error de comunicación con la parte móvil";
+            LOG4CXX_ERROR(pLoggerLocal, "Función getLuz- Error: " + codret.mensaje);
+            r = codret.mensaje;
             return EXIT_SUCCESS;
         }
         string respuesta;
@@ -572,9 +574,175 @@ int tratamientoMensaje(string s, string &r, CCupulaFijo &cf, CCupulaMovil &cm, C
             respuesta = "OFF";
         else if (estado.estado == tipoTriestado::ERROR)
         {
-            respuesta = "ERROR:" + estado.mensaje;
+            respuesta = "KO=" + estado.mensaje;
         }
         r = "OK=" + respuesta;
+    }
+    else if (orden == "setLuz")
+    {
+        bool bEncender;
+        if (vParametros[0] == "ON")
+            bEncender = true;
+        else
+            bEncender = false;
+
+        triestado codret = cm.setLuz(bEncender);
+        if (codret.estado == tipoTriestado::ERROR)
+        {
+            LOG4CXX_ERROR(pLoggerLocal, "Función setLuz- Error: " + codret.mensaje);
+            r = codret.mensaje;
+            return EXIT_SUCCESS;
+        }
+        r = "OK";
+    }
+    else if (orden == "setLog")
+    {
+        triestado codret = cm.setLogging(vParametros[0]);
+        if (codret.estado == tipoTriestado::ERROR)
+        {
+            LOG4CXX_ERROR(pLoggerLocal, "Función setLog- Error: " + codret.mensaje);
+            r = codret.mensaje;
+            return EXIT_SUCCESS;
+        }
+        r = "OK";
+    }
+    else if (orden == "calibrarMovil")
+    {
+        CCupulaMovil::datosCalibrado dc;
+        if (vParametros[0] == "PUT")
+        { //Hay que enviar los datos almacenados en el fichero de configuración
+            if (param.ventana_estado_calibrado == 1)
+            {
+                dc.finalizado = true;
+                dc.tiempoAbrir = param.ventana_tiempo_abrir;
+                dc.tiempoCerrar = param.ventana_tiempo_cerrar;
+            }
+            else
+            {
+                LOG4CXX_ERROR(pLoggerLocal, "Error en el tratamiento del mensaje: " + s + " orden: " + orden + " - La ventana no está cailbrada");
+                r = "KO=No se dispone de información de calibrado de la ventana en el fichero de configuración";
+                return EXIT_SUCCESS;
+            }
+        }
+        triestado codret = cm.calibrate(vParametros[0], dc);
+        if (codret.estado == tipoTriestado::ERROR)
+        {
+            LOG4CXX_ERROR(pLoggerLocal, "Función calibraMovil- Error: " + codret.mensaje);
+            r = codret.mensaje;
+            return EXIT_SUCCESS;
+        }
+        r = "OK";
+        if (vParametros[0] == "GET")
+        {
+            if (dc.finalizado)
+            { //Ventana ya calibrada, Hay que guardar los datos en el fichero de configuración
+                param.put_ventana_calibrado(dc.tiempoAbrir, dc.tiempoCerrar);
+                r += ":" + dc.estadoCalibrado + ":" + to_string(dc.finalizado) + ":" + to_string(dc.tiempoAbrir) + ":" + to_string(dc.tiempoCerrar);
+            }
+            else
+                r += ":" + dc.estadoCalibrado + ":" + to_string(dc.finalizado);
+        }
+    }
+    else if (orden == "setEmergencyShutterTimeout")
+    {
+        unsigned int segundos = stoi(vParametros[0]);
+        triestado codret = cm.setEmergencyShutterTimeout(segundos);
+        if (codret.estado == tipoTriestado::ERROR)
+        {
+            LOG4CXX_ERROR(pLoggerLocal, "Función setEmergencyShutterTimeout- Error: " + codret.mensaje);
+            r = codret.mensaje;
+            return EXIT_SUCCESS;
+        }
+        r = "OK";
+    }
+    else if (orden == "moverShutter")
+    {
+        unsigned long milisegundos = stoul(vParametros[1]);
+        triestado codret = cm.moveShutter(vParametros[0], milisegundos);
+        if (codret.estado == tipoTriestado::ERROR)
+        {
+            LOG4CXX_ERROR(pLoggerLocal, "Función moverShutter- Error: " + codret.mensaje);
+            r = codret.mensaje;
+            return EXIT_SUCCESS;
+        }
+        r = "OK";
+    }
+    else if (orden == "getEstadoMovimientoShutter")
+    {
+        string accion;
+        unsigned int avance;
+        bool timeout;
+        triestado codret = cm.movimiento(accion, avance, timeout);
+        if (codret.estado == tipoTriestado::ERROR)
+        {
+            LOG4CXX_ERROR(pLoggerLocal, "Función getEstadoMovimientoShutter- Error: " + codret.mensaje);
+            r = codret.mensaje;
+            return EXIT_SUCCESS;
+        }
+        r = "OK:" + accion + ":" + to_string(avance) + ":" + to_string(timeout);
+    }
+    else if (orden == "paraShutter")
+    {
+        triestado codret = cm.stopShutter();
+        if (codret.estado == tipoTriestado::ERROR)
+        {
+            LOG4CXX_ERROR(pLoggerLocal, "Función getEstadoMovimientoShutter- Error: " + codret.mensaje);
+            r = codret.mensaje;
+            return EXIT_SUCCESS;
+        }
+        r = "OK";
+    }
+    else if (orden == "getRelays")
+    {
+        triestado luz, cerrar, abrir;
+        triestado codret = cm.getRelays(luz, cerrar, abrir);
+        if (codret.estado == tipoTriestado::ERROR)
+        {
+            LOG4CXX_ERROR(pLoggerLocal, "Función getRelays- Error: " + codret.mensaje);
+            r = codret.mensaje;
+            return EXIT_SUCCESS;
+        }
+        r = "OK:" + to_string(luz.estado) + ":" + to_string(cerrar.estado) + ":" + to_string(abrir.estado);
+    }
+    else if (orden == "getButtons")
+    {
+        triestado luz, cerrar, abrir, reset;
+        triestado codret = cm.getButtons(luz, cerrar, abrir, reset);
+        if (codret.estado == tipoTriestado::ERROR)
+        {
+            LOG4CXX_ERROR(pLoggerLocal, "Función getButtons- Error: " + codret.mensaje);
+            r = codret.mensaje;
+            return EXIT_SUCCESS;
+        }
+        r = "OK:" + to_string(luz.estado) + ":" + to_string(cerrar.estado) + ":" + to_string(abrir.estado) + ":" + to_string(reset.estado);
+    }
+    else if (orden == "getInputs")
+    {
+        triestado cerrado, abierto;
+        triestado codret = cm.getInputs(cerrado, abierto);
+        if (codret.estado == tipoTriestado::ERROR)
+        {
+            LOG4CXX_ERROR(pLoggerLocal, "Función getInputs- Error: " + codret.mensaje);
+            r = codret.mensaje;
+            return EXIT_SUCCESS;
+        }
+        r = "OK:" + to_string(cerrado.estado) + ":" + to_string(abierto.estado);
+    }
+    else if (orden == "getStatus")
+    {
+        stringmap estados;
+        triestado codret = cm.getStatus(estados);
+        if (codret.estado == tipoTriestado::ERROR)
+        {
+            LOG4CXX_ERROR(pLoggerLocal, "Función getStatus- Error: " + codret.mensaje);
+            r = codret.mensaje;
+            return EXIT_SUCCESS;
+        }
+        r = "OK";
+        for (auto it = estados.begin(); it != estados.end(); ++it)
+        {
+            r += ":" + it->first + ":" + it->second;
+        }
     }
     else
     {

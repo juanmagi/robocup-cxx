@@ -13,12 +13,16 @@ CCupulaMovil::~CCupulaMovil()
     desconectar();
 }
 
-int CCupulaMovil::conectar()
+triestado CCupulaMovil::conectar()
 {
+    triestado codret;
+
     if (p_puerto_serie != nullptr)
     {
-        LOG4CXX_ERROR(pLogger, "No se puede abrir la conexión porque ya está establecida");
-        return EXIT_FAILURE;
+        LOG4CXX_DEBUG(pLogger, "No se puede abrir la conexión porque ya está establecida");
+        codret.estado = tipoTriestado::ERROR;
+        codret.mensaje = "KO=No se puede abrir la conexión porque ya está establecida";
+        return codret;
     }
 
     p_puerto_serie = new SerialPort(pParam->serial_nombre);
@@ -30,10 +34,14 @@ int CCupulaMovil::conectar()
     catch (SerialPort::OpenFailed E)
     {
         LOG4CXX_FATAL(pLogger, "Error establecido la conexión BLUETOOTH. Asegurar que el device está creado");
-        return EXIT_FAILURE;
+        codret.estado = tipoTriestado::ERROR;
+        codret.mensaje = "KO=No se puede abrir la conexión porque ya está establecida";
+        return codret;
     }
 
-    return EXIT_SUCCESS;
+    codret.estado = tipoTriestado::ON;
+    codret.mensaje = "";
+    return codret;
 }
 
 int CCupulaMovil::desconectar()
@@ -105,47 +113,46 @@ std::string CCupulaMovil::parametros(std::string mensaje, unsigned int posicion)
     return dato[posicion - 1];
 }
 
-int CCupulaMovil::estadoLuz(triestado &salida)
+triestado CCupulaMovil::getLuz(triestado &salida)
 {
-    string respuesta;
-    if (comunicar("getRelays", respuesta) == EXIT_SUCCESS)
+    triestado cerrar, abrir;
+    triestado codret;
+
+    codret = getRelays(salida, cerrar, abrir);
+    if (codret.estado == tipoTriestado::ERROR)
     {
-        if (respuesta.substr(0, 2) == "OK")
-        {
-            string p1 = parametros(respuesta, 1);
-            if (p1 == "1")
-                salida.estado = tipoTriestado::ON;
-            else
-                salida.estado = tipoTriestado::OFF;
-            return EXIT_SUCCESS;
-        }
-        else
-        {
-            salida.estado = tipoTriestado::ERROR;
-            salida.mensaje = respuesta;
-            return EXIT_SUCCESS;
-        }
+        LOG4CXX_INFO(pLogger, "Error en la función getLuz: " + codret.mensaje);
+        codret.estado = tipoTriestado::ERROR;
+        codret.mensaje = codret.mensaje;
+        return codret;
     }
-    return EXIT_FAILURE;
+
+    codret.estado = tipoTriestado::ON;
+    codret.mensaje = "";
+    return codret;
 }
 
-int CCupulaMovil::Luz(bool bEncender)
+triestado CCupulaMovil::setLuz(bool bEncender)
 {
     string mensaje;
+    triestado codret;
     if (bEncender)
         mensaje = "luz=ON";
     else
         mensaje = "luz=OFF";
+
     string respuesta;
-    if (comunicar(mensaje, respuesta) == EXIT_SUCCESS)
+    comunicar(mensaje, respuesta);
+    if (respuesta.substr(0, 2) != "OK")
     {
-        if (respuesta.substr(0, 2) != "OK")
-        {
-            LOG4CXX_INFO(pLogger, "Error en la función Luz: " + respuesta);
-        }
-        return EXIT_SUCCESS;
+        LOG4CXX_INFO(pLogger, "Error en la función setLuz: " + respuesta);
+        codret.estado = tipoTriestado::ERROR;
+        codret.mensaje = respuesta;
+        return codret;
     }
-    return EXIT_FAILURE;
+    codret.estado = tipoTriestado::ON;
+    codret.mensaje = "";
+    return codret;
 }
 
 int CCupulaMovil::getFirmwareVersion(string &version)
@@ -162,9 +169,11 @@ int CCupulaMovil::getFirmwareVersion(string &version)
     return EXIT_FAILURE;
 }
 
-int CCupulaMovil::setLogging(string level)
+triestado CCupulaMovil::setLogging(string level)
 {
     string mensaje;
+    triestado codret;
+
     if (level == "LOG_LEVEL_SILENT")
         mensaje = "setLogging=LOG_LEVEL_SILENT";
     else if (level == "LOG_LEVEL_FATAL")
@@ -180,19 +189,23 @@ int CCupulaMovil::setLogging(string level)
     else
     {
         LOG4CXX_DEBUG(pLogger, "Parámetro level incorrecto");
-        return EXIT_FAILURE;
+        codret.estado = tipoTriestado::ERROR;
+        codret.mensaje = "KO=Parámetro level incorrecto";
+        return codret;
     }
 
     string respuesta;
-    if (comunicar(mensaje, respuesta) == EXIT_SUCCESS)
+    comunicar(mensaje, respuesta);
+    if (respuesta.substr(0, 2) != "OK")
     {
-        if (respuesta.substr(0, 2) != "OK")
-        {
-            LOG4CXX_INFO(pLogger, "Error en la función setLogging: " + respuesta);
-        }
-        return EXIT_SUCCESS;
+        LOG4CXX_INFO(pLogger, "Error en la función setEmergencyShutterTimeout: " + respuesta);
+        codret.estado = tipoTriestado::ERROR;
+        codret.mensaje = respuesta;
+        return codret;
     }
-    return EXIT_FAILURE;
+    codret.estado = tipoTriestado::ON;
+    codret.mensaje = "";
+    return codret;
 }
 
 int CCupulaMovil::latido()
@@ -210,57 +223,38 @@ int CCupulaMovil::latido()
     return EXIT_FAILURE;
 }
 
-int CCupulaMovil::calibrate(string accion, datosCalibrado &dc)
+triestado CCupulaMovil::calibrate(string accion, datosCalibrado &dc)
 {
-    static string accionActual = "";
     string mensaje;
+    triestado codret;
     if (accion == "CALIBRATE")
     {
-        if (accionActual != "")
-        {
-            LOG4CXX_DEBUG(pLogger, "Solicitud de calibrado con un calibrado ya en marcha");
-            return EXIT_FAILURE;
-        }
-
-        accionActual = accion;
         mensaje = "calibrateShutter=CALIBRATE";
     }
     else if (accion == "GET")
     {
-        if (accionActual != "CALIBRATE")
-        {
-            LOG4CXX_DEBUG(pLogger, "Solicitud de GET sin calibrado en marcha");
-            return EXIT_FAILURE;
-        }
-
-        accionActual = accion;
         mensaje = "calibrateShutter=GET";
     }
     else if (accion == "PUT")
     {
-        if (accionActual != "")
-        {
-            LOG4CXX_DEBUG(pLogger, "Solicitud de PUT con un calibrado ya en marcha");
-            return EXIT_FAILURE;
-        }
-
-        accionActual = accion;
         mensaje = "calibrateShutter=PUT:" + to_string(dc.tiempoAbrir) + ":" + to_string(dc.tiempoCerrar);
     }
     else
     {
-        LOG4CXX_DEBUG(pLogger, "Parámetro accion incorrecto");
-        return EXIT_FAILURE;
+        LOG4CXX_DEBUG(pLogger, "Parámetro acción incorrecto");
+        codret.estado = tipoTriestado::ERROR;
+        codret.mensaje = "KO=Parámetro acción incorrecto";
+        return codret;
     }
 
     string respuesta;
-    if (comunicar(mensaje, respuesta) == EXIT_SUCCESS)
+    comunicar(mensaje, respuesta);
+    if (respuesta.substr(0, 2) != "OK")
     {
-        if (respuesta.substr(0, 2) != "OK")
-        {
-            LOG4CXX_INFO(pLogger, "Error en la función setLogging: " + respuesta);
-        }
-        return EXIT_SUCCESS;
+        LOG4CXX_INFO(pLogger, "Error en la función calibrate: " + respuesta);
+        codret.estado = tipoTriestado::ERROR;
+        codret.mensaje = respuesta;
+        return codret;
     }
 
     if (accion == "GET")
@@ -271,10 +265,11 @@ int CCupulaMovil::calibrate(string accion, datosCalibrado &dc)
         {
             dc.tiempoAbrir = stoul(parametros(respuesta, 3));
             dc.tiempoCerrar = stoul(parametros(respuesta, 4));
-            accionActual = "";
         }
     }
-    return EXIT_SUCCESS;
+    codret.estado = tipoTriestado::ON;
+    codret.mensaje = "";
+    return codret;
 }
 
 int CCupulaMovil::domeAtHome(bool enDAH)
@@ -296,25 +291,31 @@ int CCupulaMovil::domeAtHome(bool enDAH)
     return EXIT_FAILURE;
 }
 
-int CCupulaMovil::setEmergencyShutterTimeout(int segundos)
+triestado CCupulaMovil::setEmergencyShutterTimeout(int segundos)
 {
     string mensaje;
+    triestado codret;
+
     mensaje = "setEmergencyShutterTimeout=" + to_string(segundos);
     string respuesta;
-    if (comunicar(mensaje, respuesta) == EXIT_SUCCESS)
+    comunicar(mensaje, respuesta);
+    if (respuesta.substr(0, 2) != "OK")
     {
-        if (respuesta.substr(0, 2) != "OK")
-        {
-            LOG4CXX_INFO(pLogger, "Error en la función setEmergencyShutterTimeout: " + respuesta);
-        }
-        return EXIT_SUCCESS;
+        LOG4CXX_INFO(pLogger, "Error en la función setEmergencyShutterTimeout: " + respuesta);
+        codret.estado = tipoTriestado::ERROR;
+        codret.mensaje = respuesta;
+        return codret;
     }
-    return EXIT_FAILURE;
+    codret.estado = tipoTriestado::ON;
+    codret.mensaje = "";
+    return codret;
 }
 
-int CCupulaMovil::moveShutter(string accion, unsigned long TimeoutShutter)
+triestado CCupulaMovil::moveShutter(string accion, unsigned long TimeoutShutter)
 {
     string mensaje;
+    triestado codret;
+
     if (accion == "OPEN")
         mensaje = "moveShutter=OPEN";
     else if (accion == "CLOSE")
@@ -322,7 +323,9 @@ int CCupulaMovil::moveShutter(string accion, unsigned long TimeoutShutter)
     else
     {
         LOG4CXX_DEBUG(pLogger, "Parámetro acción incorrecto");
-        return EXIT_FAILURE;
+        codret.estado = tipoTriestado::ERROR;
+        codret.mensaje = "KO=Parámetro acción incorrecto";
+        return codret;
     }
 
     if (TimeoutShutter > 0)
@@ -331,69 +334,78 @@ int CCupulaMovil::moveShutter(string accion, unsigned long TimeoutShutter)
     }
 
     string respuesta;
-    if (comunicar(mensaje, respuesta) == EXIT_SUCCESS)
+    comunicar(mensaje, respuesta);
+    if (respuesta.substr(0, 2) != "OK")
     {
-        if (respuesta.substr(0, 2) != "OK")
-        {
-            LOG4CXX_INFO(pLogger, "Error en la función moveShutter: " + respuesta);
-        }
-        return EXIT_SUCCESS;
+        LOG4CXX_INFO(pLogger, "Error en la función moveShutter: " + respuesta);
+        codret.estado = tipoTriestado::ERROR;
+        codret.mensaje = respuesta;
+        return codret;
     }
-    return EXIT_FAILURE;
+    codret.estado = tipoTriestado::ON;
+    codret.mensaje = "";
+    return codret;
 }
 
-int CCupulaMovil::movimiento(string &accion, unsigned int &avance, bool &timeout)
+triestado CCupulaMovil::movimiento(string &accion, unsigned int &avance, bool &timeout)
 {
     string mensaje = "getMovimiento";
+    triestado codret;
     string respuesta;
-    if (comunicar(mensaje, respuesta) == EXIT_SUCCESS)
+
+    comunicar(mensaje, respuesta);
+    if (respuesta.substr(0, 2) != "OK")
     {
-        if (respuesta.substr(0, 2) != "OK")
-        {
-            LOG4CXX_INFO(pLogger, "Error en la función latido: " + respuesta);
-        }
-        return EXIT_SUCCESS;
+        LOG4CXX_INFO(pLogger, "Error en la función movimiento: " + respuesta);
+        codret.estado = tipoTriestado::ERROR;
+        codret.mensaje = respuesta;
+        return codret;
     }
 
     accion = parametros(respuesta, 1);
     avance = stoi(parametros(respuesta, 2));
     timeout = stoi(parametros(respuesta, 3));
-
-    return EXIT_FAILURE;
+    codret.estado = tipoTriestado::ON;
+    codret.mensaje = "";
+    return codret;
 }
 
-int CCupulaMovil::stopShutter()
+triestado CCupulaMovil::stopShutter()
 {
     string mensaje = "stopShutter";
+    triestado codret;
     string respuesta;
-    if (comunicar(mensaje, respuesta) == EXIT_SUCCESS)
+    comunicar(mensaje, respuesta);
+    if (respuesta.substr(0, 2) != "OK")
     {
-        if (respuesta.substr(0, 2) != "OK")
-        {
-            LOG4CXX_INFO(pLogger, "Error en la función stopShutter: " + respuesta);
-        }
-        return EXIT_SUCCESS;
+        LOG4CXX_INFO(pLogger, "Error en la función stopShutter: " + respuesta);
+        codret.estado = tipoTriestado::ERROR;
+        codret.mensaje = respuesta;
+        return codret;
     }
-    return EXIT_FAILURE;
+    codret.estado = tipoTriestado::ON;
+    codret.mensaje = "";
+    return codret;
 }
 
-int CCupulaMovil::getRelays(triestado &luz, triestado &cerrar, triestado &abrir)
+triestado CCupulaMovil::getRelays(triestado &luz, triestado &cerrar, triestado &abrir)
 {
     string mensaje = "getRelays";
+    triestado codret;
     string respuesta;
-    if (comunicar(mensaje, respuesta) == EXIT_SUCCESS)
+    comunicar(mensaje, respuesta);
+    if (respuesta.substr(0, 2) != "OK")
     {
-        if (respuesta.substr(0, 2) != "OK")
-        {
-            LOG4CXX_INFO(pLogger, "Error en la función getRelays: " + respuesta);
-            luz.estado = tipoTriestado::ERROR;
-            luz.mensaje = respuesta;
-            cerrar.estado = tipoTriestado::ERROR;
-            cerrar.mensaje = respuesta;
-            abrir.estado = tipoTriestado::ERROR;
-            abrir.mensaje = respuesta;
-        }
-        return EXIT_SUCCESS;
+        LOG4CXX_INFO(pLogger, "Error en la función getRelays: " + respuesta);
+        luz.estado = tipoTriestado::ERROR;
+        luz.mensaje = respuesta;
+        cerrar.estado = tipoTriestado::ERROR;
+        cerrar.mensaje = respuesta;
+        abrir.estado = tipoTriestado::ERROR;
+        abrir.mensaje = respuesta;
+        codret.estado = tipoTriestado::ERROR;
+        codret.mensaje = respuesta;
+        return codret;
     }
 
     if (parametros(respuesta, 1) == "1")
@@ -409,30 +421,32 @@ int CCupulaMovil::getRelays(triestado &luz, triestado &cerrar, triestado &abrir)
     else
         abrir.estado = tipoTriestado::OFF;
 
-    return EXIT_FAILURE;
+    codret.estado = tipoTriestado::ON;
+    codret.mensaje = "";
+    return codret;
 }
 
-int CCupulaMovil::getButtons(triestado &luz, triestado &cerrar, triestado &abrir, triestado &reset)
+triestado CCupulaMovil::getButtons(triestado &luz, triestado &cerrar, triestado &abrir, triestado &reset)
 {
     string mensaje = "getButtons";
+    triestado codret;
     string respuesta;
-    if (comunicar(mensaje, respuesta) == EXIT_SUCCESS)
+    comunicar(mensaje, respuesta);
+    if (respuesta.substr(0, 2) != "OK")
     {
-        if (respuesta.substr(0, 2) != "OK")
-        {
-            LOG4CXX_INFO(pLogger, "Error en la función getButtons: " + respuesta);
-            luz.estado = tipoTriestado::ERROR;
-            luz.mensaje = respuesta;
-            cerrar.estado = tipoTriestado::ERROR;
-            cerrar.mensaje = respuesta;
-            abrir.estado = tipoTriestado::ERROR;
-            abrir.mensaje = respuesta;
-            reset.estado = tipoTriestado::ERROR;
-            reset.mensaje = respuesta;
-        }
-        return EXIT_SUCCESS;
+        LOG4CXX_INFO(pLogger, "Error en la función getButtons: " + respuesta);
+        luz.estado = tipoTriestado::ERROR;
+        luz.mensaje = respuesta;
+        cerrar.estado = tipoTriestado::ERROR;
+        cerrar.mensaje = respuesta;
+        abrir.estado = tipoTriestado::ERROR;
+        abrir.mensaje = respuesta;
+        reset.estado = tipoTriestado::ERROR;
+        reset.mensaje = respuesta;
+        codret.estado = tipoTriestado::ERROR;
+        codret.mensaje = respuesta;
+        return codret;
     }
-
     if (parametros(respuesta, 1) == "1")
         luz.estado = tipoTriestado::ON;
     else
@@ -450,24 +464,27 @@ int CCupulaMovil::getButtons(triestado &luz, triestado &cerrar, triestado &abrir
     else
         reset.estado = tipoTriestado::OFF;
 
-    return EXIT_FAILURE;
+    codret.estado = tipoTriestado::ON;
+    codret.mensaje = "";
+    return codret;
 }
 
-int CCupulaMovil::getInputs(triestado &cerrado, triestado &abierto)
+triestado CCupulaMovil::getInputs(triestado &cerrado, triestado &abierto)
 {
     string mensaje = "getInputs";
+    triestado codret;
     string respuesta;
-    if (comunicar(mensaje, respuesta) == EXIT_SUCCESS)
+    comunicar(mensaje, respuesta);
+    if (respuesta.substr(0, 2) != "OK")
     {
-        if (respuesta.substr(0, 2) != "OK")
-        {
-            LOG4CXX_INFO(pLogger, "Error en la función getInputs: " + respuesta);
-            cerrado.estado = tipoTriestado::ERROR;
-            cerrado.mensaje = respuesta;
-            abierto.estado = tipoTriestado::ERROR;
-            abierto.mensaje = respuesta;
-        }
-        return EXIT_SUCCESS;
+        LOG4CXX_INFO(pLogger, "Error en la función getInputs: " + respuesta);
+        cerrado.estado = tipoTriestado::ERROR;
+        cerrado.mensaje = respuesta;
+        abierto.estado = tipoTriestado::ERROR;
+        abierto.mensaje = respuesta;
+        codret.estado = tipoTriestado::ERROR;
+        codret.mensaje = respuesta;
+        return codret;
     }
 
     if (parametros(respuesta, 1) == "1")
@@ -479,22 +496,23 @@ int CCupulaMovil::getInputs(triestado &cerrado, triestado &abierto)
     else
         abierto.estado = tipoTriestado::OFF;
 
-    return EXIT_FAILURE;
+    codret.estado = tipoTriestado::ON;
+    codret.mensaje = "";
+    return codret;
 }
 
-int CCupulaMovil::getStatus(stringmap &estados)
+triestado CCupulaMovil::getStatus(stringmap &estados)
 {
     string mensaje = "getInputs";
+    triestado codret;
     string respuesta;
-    if (comunicar(mensaje, respuesta) == EXIT_SUCCESS)
+    comunicar(mensaje, respuesta);
+    if (respuesta.substr(0, 2) != "OK")
     {
-        if (respuesta.substr(0, 2) != "OK")
-        {
-            LOG4CXX_INFO(pLogger, "Error en la función getInputs: " + respuesta);
-            estados["valido"] = "no";
-            estados["mensaje"] = respuesta;
-        }
-        return EXIT_SUCCESS;
+        LOG4CXX_INFO(pLogger, "Error en la función getInputs: " + respuesta);
+        estados["valido"] = "no";
+        estados["mensaje"] = respuesta;
+        return codret;
     }
 
     estados["valido"] = "si";
@@ -514,20 +532,27 @@ int CCupulaMovil::getStatus(stringmap &estados)
     estados["m_tiempoAbrir"] = parametros(respuesta, 14);
     estados["m_tiempoCerrar"] = parametros(respuesta, 15);
 
-    return EXIT_FAILURE;
+    codret.estado = tipoTriestado::ON;
+    codret.mensaje = "";
+    return codret;
 }
 
-int CCupulaMovil::calibrateSincrono(datosCalibrado &dc)
+triestado CCupulaMovil::calibrateSincrono(datosCalibrado &dc)
 {
-    if (calibrate("CALIBRATE", dc) == EXIT_FAILURE)
-        return EXIT_FAILURE;
+    triestado codret = calibrate("CALIBRATE", dc);
+    if (codret.estado == tipoTriestado::ERROR)
+        return codret;
     while (true)
     {
-        int r = calibrate("GET", dc);
-        if (r == EXIT_FAILURE)
-            return EXIT_FAILURE;
+        codret = calibrate("GET", dc);
+        if (codret.estado == tipoTriestado::ERROR)
+            return codret;
         if (dc.finalizado == true)
-            return EXIT_SUCCESS;
+        {
+            codret.estado = tipoTriestado::ON;
+            codret.mensaje = "";
+            return codret;
+        }
         LOG4CXX_DEBUG(pLogger, "Calibrando la ventana: " + dc.estadoCalibrado);
         sleep(5);
     }

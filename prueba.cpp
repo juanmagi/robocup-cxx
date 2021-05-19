@@ -77,7 +77,7 @@ int main(int /*argc*/, char ** /*argv*/)
 		usleep(10000);
 	}
 	LOG4CXX_DEBUG(logger, "A posición DAH");
-	cf.DomeAtHome(true);
+	cf.setDAH(true);
 	while (CCupulaFijo::sentido != sentidoMovimiento::PARADO)
 	{
 		LOG4CXX_DEBUG(logger, "Posición: " + to_string(cf.getPosicion()) + " OnMovil: " + to_string(cf.mapaPines[param.gpio_pin_act_on_movil]));
@@ -92,7 +92,7 @@ int main(int /*argc*/, char ** /*argv*/)
 	}
 
 	//Pruebas con la parte móvil
-	if (cm.conectar() == EXIT_FAILURE)
+	if (cm.conectar().estado == tipoTriestado::ERROR)
 	{
 		LOG4CXX_ERROR(logger, "no es posible conectar con la parte móvil");
 		cf.finalizarThreads(tipoThread::todos);
@@ -107,11 +107,11 @@ int main(int /*argc*/, char ** /*argv*/)
 
 	LOG4CXX_DEBUG(logger, "Oden parte móvil: calibrate");
 	CCupulaMovil::datosCalibrado dc;
-	if (cm.calibrateSincrono(dc) == EXIT_SUCCESS)
+	if (cm.calibrateSincrono(dc).estado!=tipoTriestado::ERROR)
 	{
 		LOG4CXX_DEBUG(logger, "Calibrate OK TiempoAbrir: " + to_string(dc.tiempoAbrir) + " TiempoCerrar: " + to_string(dc.tiempoCerrar));
 		LOG4CXX_DEBUG(logger, "Oden parte móvil: calibrate-PUT");
-		if (cm.calibrate("PUT", dc) == EXIT_SUCCESS)
+		if (cm.calibrate("PUT", dc).estado!=tipoTriestado::ERROR)
 		{
 			LOG4CXX_DEBUG(logger, "Calibrate-PUT OK");
 		}

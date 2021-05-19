@@ -115,7 +115,7 @@ void CCupulaFijo::runEncoder(CConfig *pParametros, int pi_ID)
         darPosicionAbsoluta = false;
         LOG4CXX_INFO(pLoggerLocal, "Cúpula no calibrada. Sólo se obtienen posiciones relativas, considerando la posición actual como posición 0");
     }
-    else if (!estadoDAH(pParametros, pi_ID))
+    else if (!getDAH(pParametros, pi_ID))
     { //Cúpula no está en la posición DAH
         darPosicionAbsoluta = false;
         LOG4CXX_INFO(pLoggerLocal, "Cúpula no en DAH. Sólo se obtienen posiciones relativas, considerando la posición actual como posición 0");
@@ -147,10 +147,10 @@ void CCupulaFijo::runEncoder(CConfig *pParametros, int pi_ID)
             }
             valorAnterior = valor;
             usleep(tiempoEntreLecturas);
-            if (estadoDAH(pParametros, pi_ID))
-                onCupulaMovil(pParametros, pi_ID, true);
+            if (getDAH(pParametros, pi_ID))
+                setCorrienteCupulaMovil(pParametros, pi_ID, true);
             else
-                onCupulaMovil(pParametros, pi_ID, false);
+                setCorrienteCupulaMovil(pParametros, pi_ID, false);
         }
     }
     else //NO es simulación, es real
@@ -179,10 +179,10 @@ void CCupulaFijo::runEncoder(CConfig *pParametros, int pi_ID)
             }
             valorAnterior = valor;
             usleep(tiempoEntreLecturas);
-            if (estadoDAH(pParametros, pi_ID))
-                onCupulaMovil(pParametros, pi_ID, true);
+            if (getDAH(pParametros, pi_ID))
+                setCorrienteCupulaMovil(pParametros, pi_ID, true);
             else
-                onCupulaMovil(pParametros, pi_ID, false);
+                setCorrienteCupulaMovil(pParametros, pi_ID, false);
         }
     }
 }
@@ -370,7 +370,7 @@ void CCupulaFijo::runStop(CConfig *pParametros, int pi_ID, tipoPosicion tp, int 
             int posicionFinal = posRelIni + pParametros->cupula_max_posiciones;
             while (posicionRelativa < posicionFinal)
             {
-                if (estadoDAH(pParametros, pi_ID))
+                if (getDAH(pParametros, pi_ID))
                     break;
                 if (mapaPines[tipoThread::stop] == true)
                     break;
@@ -383,7 +383,7 @@ void CCupulaFijo::runStop(CConfig *pParametros, int pi_ID, tipoPosicion tp, int 
             int posicionFinal = posRelIni - pParametros->cupula_max_posiciones;
             while (posicionRelativa > posicionFinal)
             {
-                if (estadoDAH(pParametros, pi_ID))
+                if (getDAH(pParametros, pi_ID))
                     break;
                 if (mapaPines[tipoThread::stop] == true)
                     break;
@@ -420,7 +420,7 @@ void CCupulaFijo::runStop(CConfig *pParametros, int pi_ID, tipoPosicion tp, int 
         break;
     }
 }
-void CCupulaFijo::onCupulaMovil(CConfig *pParametros, int pi_ID, bool on)
+void CCupulaFijo::setCorrienteCupulaMovil(CConfig *pParametros, int pi_ID, bool on)
 {
     log4cxx::LoggerPtr pLoggerLocal = log4cxx::Logger::getRootLogger();
     if (on)
@@ -603,7 +603,7 @@ void CCupulaFijo::finalizarThreads(tipoThread valor)
     }
 }
 
-bool CCupulaFijo::estadoDAH(CConfig *pParametros, int pi_ID)
+bool CCupulaFijo::getDAH(CConfig *pParametros, int pi_ID)
 {
     log4cxx::LoggerPtr pLoggerLocal = log4cxx::Logger::getRootLogger();
 
@@ -772,11 +772,11 @@ void CCupulaFijo::setPosicion(sentidoMovimiento sm, tipoPosicion tp, int posicio
         pStop = new thread(runStop, pParam, piID, tp, posRelIni);
 }
 
-void CCupulaFijo::DomeAtHome(bool valor)
+void CCupulaFijo::setDAH(bool valor)
 {
     if (valor)
     { //Vamos al DAH
-        if (estadoDAH())
+        if (getDAH())
             return;
         if (posicionAbsoluta == -1)
             setPosicion(sentidoMovimiento::CW, tipoPosicion::dah, 0);
@@ -785,7 +785,7 @@ void CCupulaFijo::DomeAtHome(bool valor)
     }
     else
     { //Vamos al DAH + 20 CW
-        if (estadoDAH())
+        if (getDAH())
         {
             setPosicion(sentidoMovimiento::CW, tipoPosicion::relativa, 20);
             return;
@@ -830,14 +830,14 @@ void CCupulaFijo::calibrate(bool recalibrar /*=false*/, bool moverAdah /*=true*/
     { //Ya está calibrado y no se pide recalibrar, llevar la cúpula a DAH y salir
         if (moverAdah)
         {
-            DomeAtHome(true);
+            setDAH(true);
             posicionRelativa = 0;
             posicionAbsoluta = 0;
             estadoCalibrado = estadosCalibrado::CALIBRADO;
         }
         else
         { //Si no se deja ir a DAH, se comprueba si ya lo estamos y en ese caso también se posiciona la cúpula
-            if (estadoDAH())
+            if (getDAH())
             {
                 posicionRelativa = 0;
                 posicionAbsoluta = 0;
@@ -850,7 +850,7 @@ void CCupulaFijo::calibrate(bool recalibrar /*=false*/, bool moverAdah /*=true*/
     int errCode;
     //Nos movemos en sentido CW hasta que encontremos el DAH y pasamos 10 unidades
     estadoCalibrado = estadosCalibrado::MOVIENDO_A_DAH_PLUS;
-    DomeAtHome(false);
+    setDAH(false);
     //Esperamos a que la cúpula se ponga en marcha
     while (sentido == sentidoMovimiento::PARADO)
     {
@@ -868,18 +868,18 @@ void CCupulaFijo::calibrate(bool recalibrar /*=false*/, bool moverAdah /*=true*/
     estadoCalibrado = estadosCalibrado::MOVIENDO_A_DAH;
     setPosicion(sentidoMovimiento::CCW, tipoPosicion::manual, 0);
     //Esperamos hasta que se detecte DAH y entonces de define la posición 0
-    while (!estadoDAH(pParam, piID))
+    while (!getDAH(pParam, piID))
     {
         LOG4CXX_DEBUG(pLogger, "Pin dah: " + to_string(mapaPines[pParam->gpio_pin_inp_dah]) + " Pin encoder " + to_string(mapaPines[pParam->gpio_pin_inp_encoder]) + " Posición: " + to_string(posicionRelativa));
     }
     int posicionInicial = posicionRelativa;
     //Esperamos hasta que se salga de DAH
-    while (estadoDAH(pParam, piID))
+    while (getDAH(pParam, piID))
     {
         LOG4CXX_DEBUG(pLogger, "Pin dah: " + to_string(mapaPines[pParam->gpio_pin_inp_dah]) + " Pin encoder " + to_string(mapaPines[pParam->gpio_pin_inp_encoder]) + " Posición: " + to_string(posicionRelativa));
     }
     //Esperamos hasta el nuevo DAH
-    while (!estadoDAH(pParam, piID))
+    while (!getDAH(pParam, piID))
     {
         LOG4CXX_DEBUG(pLogger, "Pin dah: " + to_string(mapaPines[pParam->gpio_pin_inp_dah]) + " Pin encoder " + to_string(mapaPines[pParam->gpio_pin_inp_encoder]) + " Posición: " + to_string(posicionRelativa));
     }

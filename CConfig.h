@@ -30,6 +30,7 @@ public:
   ~CConfig();
   void load();
   void put_cupula_max_posiciones(int valor);
+  void put_ventana_calibrado(unsigned long tiempoAbrir, unsigned long tiempoCerrar);
   void save();
   bool getComando(string orden,comando& c);
 
@@ -73,6 +74,10 @@ public:
   int cupula_longitud_onda_simulacion;
   useconds_t cupula_tiempo_entre_lecturas;
 
+  //Ventana
+  int ventana_estado_calibrado;
+  unsigned long ventana_tiempo_abrir;
+  unsigned long ventana_tiempo_cerrar;
 protected:
   void loadComandos();
 

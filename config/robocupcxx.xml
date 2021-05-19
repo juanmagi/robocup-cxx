@@ -40,6 +40,11 @@
         <longitud_onda_simulacion>10</longitud_onda_simulacion>
         <tiempo_entre_lecturas>50000</tiempo_entre_lecturas>
     </cupula>
+    <ventana>
+        <estado_calibrado>0</estado_calibrado>
+        <tiempo_abrir>0</tiempo_abrir>
+        <tiempo_cerrar>0</tiempo_cerrar>
+    </ventana>
 </comun>
 <desarrollo>
     <general>
@@ -54,6 +59,11 @@
         <max_posiciones>60</max_posiciones>
         <max_posiciones_simulacion>60</max_posiciones_simulacion>
     </cupula>
+    <ventana>
+        <estado_calibrado>0</estado_calibrado>
+        <tiempo_abrir>0</tiempo_abrir>
+        <tiempo_cerrar>0</tiempo_cerrar>
+    </ventana>
 </desarrollo>
 <produccion>
     <general>
@@ -67,4 +77,9 @@
     <cupula>
         <max_posiciones>-1</max_posiciones>
     </cupula>
+    <ventana>
+        <estado_calibrado>0</estado_calibrado>
+        <tiempo_abrir>0</tiempo_abrir>
+        <tiempo_cerrar>0</tiempo_cerrar>
+    </ventana>
 </produccion>

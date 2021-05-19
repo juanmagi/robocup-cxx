@@ -61,6 +61,10 @@ void CConfig::load()
         cupula_periodo_simulacion = tree.get<useconds_t>("comun.cupula.periodo_simulacion");
         cupula_longitud_onda_simulacion = tree.get<int>("comun.cupula.longitud_onda_simulacion");
         cupula_tiempo_entre_lecturas = tree.get<useconds_t>("comun.cupula.tiempo_entre_lecturas");
+
+        ventana_estado_calibrado = tree.get<int>("comun.ventana.estado_calibrado");
+        ventana_tiempo_abrir = tree.get<unsigned long>("comun.ventana.tiempo_abrir");
+        ventana_tiempo_cerrar = tree.get<unsigned long>("comun.ventana.tiempo_cerrar");
     }
     catch (const exception &e)
     {
@@ -72,6 +76,7 @@ void CConfig::load()
     double d;
     int i;
     useconds_t u;
+    unsigned long ul;
     i = tree.get<int>(modo + ".general.simulacion", -1);
     if (i != -1)
         general_simulacion = i;
@@ -157,6 +162,16 @@ void CConfig::load()
     if (u != 0)
         cupula_tiempo_entre_lecturas = u;
 
+    i=tree.get<int>(modo+".ventana.estado_calibrado",-1);
+    if (i!=-1)
+        ventana_estado_calibrado = i;
+    ul=tree.get<unsigned long>(modo+".ventana.tiempo_abrir",ULONG_MAX);
+    if (ul!=ULONG_MAX)
+        ventana_tiempo_abrir = ul;
+    ul=tree.get<unsigned long>(modo+".ventana.tiempo_cerrar",ULONG_MAX);
+    if (ul!=ULONG_MAX)
+        ventana_tiempo_cerrar = ul;
+
     if (s_log_nivel == "OFF")
         log_nivel = log4cxx::Level::getOff();
     else if (s_log_nivel == "FATAL")
@@ -187,6 +202,24 @@ void CConfig::put_cupula_max_posiciones(int valor)
         tree.put("produccion.cupula.max_posiciones", valor);
 
     cupula_max_posiciones = valor;
+    save();
+}
+
+void CConfig::put_ventana_calibrado(unsigned long tiempoAbrir, unsigned long tiempoCerrar)
+{
+    if (MODO == "desarrollo"){
+        tree.put("desarrollo.ventana.estado_calibrado", 1);
+        tree.put("desarrollo.ventana.tiempo_abrir", tiempoAbrir);
+        tree.put("desarrollo.ventana.tiempo_cerrar", tiempoCerrar);
+    }else{
+        tree.put("poduccion.ventana.estado_calibrado", 1);
+        tree.put("produccion.ventana.tiempo_abrir", tiempoAbrir);
+        tree.put("produccion.ventana.tiempo_cerrar", tiempoCerrar);
+    }
+
+    ventana_estado_calibrado = 1;
+    ventana_tiempo_abrir=tiempoAbrir;
+    ventana_tiempo_cerrar=tiempoCerrar;
     save();
 }
 
@@ -351,13 +384,11 @@ void CConfig::loadComandos()
     c.parametros.clear();
     c.parametros.push_back(vs);
     c.orden = "calibrarMovil";
-    c.num_param = 3;
+    c.num_param = 1;
     c.parametros[0].push_back("CALIBRATE"); //acción: Calibrate para calibrar, Get para obtener datos de calibrado, Put para enviar adtos de calibrados anteriores
     c.parametros[0].push_back("CALIBRATE");
     c.parametros[0].push_back("GET");
     c.parametros[0].push_back("PUT");
-    c.parametros[1].push_back("_ulong_"); //tiempo abrir (sólo si PUT)
-    c.parametros[2].push_back("_ulong_"); //tiempo cerrar (sólo si PUT)
     comandos[c.orden] = c;
 
     for (auto it = c.parametros.begin(); it != c.parametros.end(); ++it)
@@ -378,7 +409,7 @@ void CConfig::loadComandos()
     c.parametros[0].push_back("CLOSE"); //Acción para la ventana
     c.parametros[0].push_back("OPEN");
     c.parametros[0].push_back("CLOSE");
-    c.parametros[1].push_back("_ulong_"); //tiempo en milisegndos máximo para abrir/cerrar la ventana exclusivo para este movimiento. OPCIONAL
+    c.parametros[1].push_back("_ulong_"); //tiempo en milisegndos máximo para abrir/cerrar la ventana exclusivo para este movimiento. 0 si no se requiere
     comandos[c.orden] = c;
 
     for (auto it = c.parametros.begin(); it != c.parametros.end(); ++it)
@@ -394,14 +425,6 @@ void CConfig::loadComandos()
     c.parametros.clear();
     c.parametros.push_back(vs);
     c.orden = "pararShutter";
-    c.num_param = 0;
-    comandos[c.orden] = c;
-
-    for (auto it = c.parametros.begin(); it != c.parametros.end(); ++it)
-        it->clear();
-    c.parametros.clear();
-    c.parametros.push_back(vs);
-    c.orden = "paraShutter";
     c.num_param = 0;
     comandos[c.orden] = c;
 

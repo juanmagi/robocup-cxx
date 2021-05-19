@@ -48,7 +48,7 @@ public:
         EXIT_FAILURE, error en la conexión. El mensaje de error se escribe en el log
         EXIT_SUCCESS, conexión correcta
     */
-    int conectar();
+    triestado conectar();
     /*
     Cancela la comunicación con el arduino de la parte móvil vía bluetooth
     return:
@@ -63,7 +63,7 @@ public:
     return:
         El resultado de la comunicación
     */
-    int estadoLuz(triestado &salida);
+    triestado getLuz(triestado &salida);
     /*
     Gestiona la luz de la cúpula
     param:
@@ -71,7 +71,7 @@ public:
     return:
         El resultado de la comunicación
     */
-    int Luz(bool bEncender);
+    triestado setLuz(bool bEncender);
     /*
     Devuelve la versión del firmware del arduino que gestiona la parte móvil
     param:
@@ -92,7 +92,7 @@ public:
     return:
         El resultado de la comunicación. También se puede informar error si el level solictado es inexistente
     */
-    int setLogging(std::string level);
+    triestado setLogging(std::string level);
     /*
     Emite un latido para informar a la parte móvil de que la parte fija está viva
     return:
@@ -110,7 +110,7 @@ public:
     return:
         El resultado de la comunicación.
     */
-    int calibrate(std::string accion, datosCalibrado &dc);
+    triestado calibrate(std::string accion, datosCalibrado &dc);
     /*
     Informa a la parte móvil de que la parte inferior está en DAH o no lo está
     param:
@@ -127,7 +127,7 @@ public:
     return:
         El resultado de la comunicación
     */
-    int setEmergencyShutterTimeout(int segundos);
+    triestado setEmergencyShutterTimeout(int segundos);
     /*
     Ordena la apertura/cierre de la ventana
     param:
@@ -136,7 +136,7 @@ public:
     return:
         El resultado de la comunicación
     */
-    int moveShutter(std::string accion,unsigned long TimeoutShutter=0);
+    triestado moveShutter(std::string accion,unsigned long TimeoutShutter=0);
     /*
     Obtiene información de la evolución del movimiento
     param:
@@ -146,13 +146,13 @@ public:
     return:
         El resultado de la comunicación
     */
-    int movimiento(std::string &accion, unsigned int &avance, bool &timeout);
+    triestado movimiento(std::string &accion, unsigned int &avance, bool &timeout);
     /*
     Para el movimiento de la ventana
     return:
         El resultado de la comunicación
     */
-    int stopShutter();
+    triestado stopShutter();
     /*
     Obiene el estado de los reles de la parte móvil
     param:
@@ -162,7 +162,7 @@ public:
     return:
         El resultado de la comunicación
     */
-    int getRelays(triestado &luz, triestado &cerrar,triestado &abrir);
+    triestado getRelays(triestado &luz, triestado &cerrar,triestado &abrir);
     /*
     Obiene el estado de los pulsadores de la parte móvil
     param:
@@ -173,7 +173,7 @@ public:
     return:
         El resultado de la comunicación
     */
-    int getButtons(triestado &luz, triestado &cerrar,triestado &abrir,triestado &reset);
+    triestado getButtons(triestado &luz, triestado &cerrar,triestado &abrir,triestado &reset);
     /*
     Obiene el estado de los interruptores de fin de carrera
     param:
@@ -182,7 +182,7 @@ public:
     return:
         El resultado de la comunicación
     */
-    int getInputs(triestado &cerrado,triestado &abierto);
+    triestado getInputs(triestado &cerrado,triestado &abierto);
     /*
     Obiene todos los estados de la parte móvil de la cúpula
     param:
@@ -190,7 +190,7 @@ public:
     return:
         El resultado de la comunicación
     */
-    int getStatus(stringmap &estados);
+    triestado getStatus(stringmap &estados);
     /*
     calibra el movimieto de la ventana de modo síncrono (con bloqueo)
     param:
@@ -198,7 +198,7 @@ public:
     return:
         El resultado de la comunicación.
     */
-    int calibrateSincrono(datosCalibrado &dc);
+    triestado calibrateSincrono(datosCalibrado &dc);
 
 };
 

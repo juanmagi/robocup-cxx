@@ -40,13 +40,13 @@ public:
     *   true: Mueve la cupula a la posicion DAH en la direccion CW
     *   false: Desplaza la cupula 20 posiciones en el sentido CW de la posicion DAH
     */
-    void DomeAtHome(bool valor);
+    void setDAH(bool valor);
     /*  Versión no static de la función que indica si la cúpula está o no está en DAH. 
     *   Return:
     *   true: la cúpula está en DAH
     *   false: la cúpula no está en DAH
     */
-    bool estadoDAH() { return estadoDAH(pParam, piID); }
+    bool getDAH() { return getDAH(pParam, piID); }
     /*
     Devuelve la posición de la cúpula
     Param
@@ -121,7 +121,7 @@ public:
     Return
         true o false dependiende de que tenga o no correinte
     */
-    bool getOnCupulaMovil(){return !mapaPines[pParam->gpio_pin_act_on_movil];}
+    bool getCorrienteCupulaMovil(){return !mapaPines[pParam->gpio_pin_act_on_movil];}
 
     //Funciones static
 
@@ -141,7 +141,7 @@ public:
        true: la cúpula está en DAH
        false: la cúpula no está en DAH
     */
-    static bool estadoDAH(CConfig *pParametros, int pi_ID);
+    static bool getDAH(CConfig *pParametros, int pi_ID);
     /* Suma a la posición absoluta el valor informado en valor. Este parámetro puede ser negativo
        Param:
            CConfig *pParametros: Puntero al objeto de configuración
@@ -182,7 +182,7 @@ public:
        Return:
             Ninguno
     */
-    static void onCupulaMovil(CConfig *pParametros, int pi_ID, bool on);
+    static void setCorrienteCupulaMovil(CConfig *pParametros, int pi_ID, bool on);
 
     //Variables convencionales
 
